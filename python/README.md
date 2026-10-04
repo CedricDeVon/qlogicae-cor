@@ -1,7 +1,7 @@
 </br>
 
 <div style="width: 100%; display: flex; justify-content: center;">
-    <image alt="the qlogicae logo" src="./project/asset/qlogicae1.png" width="256px">
+    <image alt="the qlogicae logo" src="./project/asset/qlogicae.png" width="256px">
 </div>
 
 </br>
