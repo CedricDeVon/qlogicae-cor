@@ -1,15 +1,15 @@
 [package]
-name = "qlogicae-cor"
+name = "${{ qlogicae-cor-base-brand-name }}"
 version = "1.0.4"
 edition = "2024"
 authors = ["Vaughn Cedric L. Araneta"]
 description = "The core library for QLogicae projects"
 license = "MIT"
-repository = "https://github.com/CedricDeVon/qlogicae-cor"
-homepage = "https://github.com/CedricDeVon/qlogicae-cor"
-documentation = "https://github.com/CedricDeVon/qlogicae-cor"
+repository = "${{ qlogicae-cor-base-repository-link }}"
+homepage = "${{ qlogicae-cor-base-repository-link }}"
+documentation = "${{ qlogicae-cor-base-repository-link }}"
 readme = "README.md"
-keywords = ["qlogicae", "cor"]
+keywords = ["qlogicae", "${{ qlogicae-cor-base-project-name }}"]
 categories = ["development-tools"]
 include = [
     "project/**",

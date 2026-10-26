@@ -1,5 +1,5 @@
 {
-	"name": "qlogicae-cor",
+	"name": "${{ qlogicae-cor-base-brand-name }}",
 	"version": "1.2.18",
 	"author": "Vaughn Cedric L. Araneta",
 	"main": "./index.js",
@@ -30,7 +30,7 @@
 		"qlogicae-cor": "./cli.js"
 	},
 	"description": "The core library for QLogicae projects",
-	"keywords": ["qlogicae", "cor"],
+	"keywords": ["qlogicae", "${{ qlogicae-cor-base-project-name }}"],
 	"license": "MIT",
 	"private": false,
 	"scripts": {
@@ -52,7 +52,7 @@
 		"deploy:push": "git push && git push --labels",
 		"deploy:check": "bun run build && bun run format && bun run lint && npm pack ./output/build --dry-run",
 		"deploy:publish": "bun publish --cwd ./output/build && bun run deploy:push",
-		"deploy:commit": "git add . && git commit -m \"project 'qlogicae-cor' version 'typescript-v1.2.18' deployment attempt\" || true",
+		"deploy:commit": "git add . && git commit -m \"project '${{ qlogicae-cor-base-brand-name }}' version 'typescript-v1.2.18' deployment attempt\" || true",
 		"workflow:develop": "bun run build",
 		"workflow:test": "bun run build && bun run test",
 		"workflow:test:unit": "bun run build && bun run test:unit",

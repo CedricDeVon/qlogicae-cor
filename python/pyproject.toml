@@ -30,17 +30,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
-dependencies = [
-    "pydantic>=2.13,<3",
-    "pyfiglet>=1.0.4,<2",
-    "PyYAML>=6.0,<7",
-    "qlogicae-cor>=2.0.0,<3",
-    "rich>=15,<16",
-    "textual>=8,<9",
-    "typer>=0.26,<1",
-    "tomli_w>=1.2.0,<2",
-    "tomlkit>=0.15.0,<1"
-]
+dependencies = []
 
 [project.optional-dependencies]
 dev = [
@@ -113,7 +103,7 @@ skip_covered = false
 
 
 [tool.mypy]
-files = ["qlogicae_cor"]
+files = ["qlogicae_cor/v2"]
 strict = true
 python_version = "3.12"
 namespace_packages = true
@@ -204,11 +194,13 @@ packages = ["qlogicae_cor"]
 
 [tool.hatch.envs.default.scripts]
 test-lint = """
-    ruff check qlogicae_cor --fix
+    ruff check qlogicae_cor/v2 --fix
 """
+
 test-type-check = """
     mypy
 """
+
 test-unit = """
     pytest -vv \
         --cov \
@@ -219,21 +211,23 @@ test-unit = """
         --cov-report=json:\"output/test/unit/coverage.json\" \
         --junitxml=\"output/test/unit/junit.xml\" \
 """
-test-benchmark-memory-usage-create = """
-    memray run -o output/test/benchmark/memray-1.bin -m test.qlogicae_cor.v1.benchmark.memory_usage.test_imports ;
-"""
-test-benchmark-memory-usage-view = """
-    memray tree output/test/benchmark/memray-1.bin
-"""
+
 test-pip-deployment = """
     twine check output/build/release/dist/*
 """
+
 deploy = """
     twine upload output/build/release/dist/* --config-file .pypirc
 """
 
 
 
+test-benchmark-memory-usage-create = """
+    memray run -o output/test/benchmark/memray-1.bin -m test.qlogicae_cor.v1.benchmark.memory_usage.test_imports ;
+"""
+test-benchmark-memory-usage-view = """
+    memray tree output/test/benchmark/memray-1.bin
+"""
 github-workflow-setup = """
     mkdir -p output/build/release &&
     mkdir -p output/test/unit &&
