@@ -1,11 +1,13 @@
 [project]
 name = "qlogicae-cor"
-version = "2.2.1"
+version = "3.0.0"
 description = "The core library for QLogicae projects"
 readme = { file = "README.md", content-type = "text/markdown" }
 requires-python = ">=3.12"
 license = "MIT"
-license-files = ["LICENSE"]
+license-files = [
+    "LICENSE"
+]
 authors = [
     { name = "Vaughn Cedric L. Araneta", email = "vaughncedriclipardoaraneta@gmail.com" }
 ]
@@ -13,7 +15,8 @@ maintainers = [
     { name = "Vaughn Cedric L. Araneta", email = "vaughncedriclipardoaraneta@gmail.com" }
 ]
 keywords = [
-    "qlogicae", "cor"
+    "qlogicae",
+    "cor"
 ]
 
 classifiers = [
@@ -36,18 +39,23 @@ dependencies = []
 dev = [
     "pytest",
     "pytest-cov",
-    "pytest-benchmark",
+    "pybenchmark",
     "ruff",
     "mypy",
     "hatch",
     "twine",
     "memray",
     "scalene",
-    "pympler"
+    "pympler",
+    "vulture",
+    "bandit",
+    "detect-secrets",
+    "pip-audit",   
+    "python-minifier"
 ]
 
 [project.scripts]
-qlogicae-cor = "qlogicae_cor.v2.console.app:main"
+qlogicae-cor = "qlogicae_cor.v3.app:main"
 
 [project.urls]
 Homepage = "https://github.com/CedricDeVon/qlogicae-cor"
@@ -58,7 +66,9 @@ Changelog = "https://github.com/CedricDeVon/qlogicae-cor/releases"
 
 
 [build-system]
-requires = ["hatchling"]
+requires = [
+    "hatchling"
+]
 build-backend = "hatchling.build"
 
 
@@ -73,8 +83,7 @@ where = ["qlogicae_cor"]
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = [
-    "./test/qlogicae_cor/v1/unit",
-    "./test/qlogicae_cor/v2/unit"
+    "./test/qlogicae_cor/v3/unit"
 ]
 python_files = ["test_*.py"]
 addopts = "-ra"
@@ -82,17 +91,10 @@ addopts = "-ra"
 
 [tool.coverage.run]
 source = [
-    "qlogicae_cor.v1.library.value_cache_storage_manager",
-    "qlogicae_cor.v1.library.macros_manager",
-    "qlogicae_cor.v1.library.object_merge_manager",
-    "qlogicae_cor.v1.library.abstract_manager",
-    "qlogicae_cor.v1.library.singleton_manager",
-    "qlogicae_cor.v1.library.error_manager",
-
-    "qlogicae_cor.v2.library.value_cache_storage_manager",
-    "qlogicae_cor.v2.library.macros_manager",
-    "qlogicae_cor.v2.library.object_merge_manager",
-    "qlogicae_cor.v2.library.singleton_manager",
+    "qlogicae_cor.v3.library.singleton_manager",
+    "qlogicae_cor.v3.library.macros_manager",
+    "qlogicae_cor.v3.library.object_merge_manager",
+    "qlogicae_cor.v3.library.value_cache_storage_manager",
 ]
 branch = true
 
@@ -166,7 +168,9 @@ ignore = [
     "S603", # allow subprocess usage
     "PLR2004", # allow magic values
 ]
-fixable = ["ALL"]
+fixable = [
+    "ALL"
+]
 unfixable = []
 
 
@@ -176,10 +180,14 @@ include = [
     "qlogicae_cor/py.typed",
 ]
 exclude = [
-    "**/__pycache__/**",
+    "**/__pycache__",
     "**/*.pyc",
-    ".github/**",
-    "test/**",
+    "test",
+    ".github",
+    ".gitignore",
+    ".vscode",
+    "requirements.txt",
+    "output",
     "docs/**",
     "project/**",
 ]
@@ -193,15 +201,15 @@ packages = ["qlogicae_cor"]
 
 
 [tool.hatch.envs.default.scripts]
-test-lint = """
-    ruff check qlogicae_cor/v2 --fix
+test-check-and-apply-format = """
+    ruff check qlogicae_cor/v3 --fix
 """
 
-test-type-check = """
+test-check-and-apply-lint = """
     mypy
 """
 
-test-unit = """
+test-run-unit = """
     pytest -vv \
         --cov \
         --cov-branch \
@@ -212,37 +220,85 @@ test-unit = """
         --junitxml=\"output/test/unit/junit.xml\" \
 """
 
-test-pip-deployment = """
+test-run-smoke = """
+    ./.venv/bin/python -m test.qlogicae_cor.v3.smoke.script
+"""
+
+test-run-e2e = """
+    qlogicae-cor
+"""
+
+test-check-feature-staleness = """
+    vulture qlogicae_cor 
+"""
+
+test-check-dependencies = """
+    pip-audit -r requirements.txt
+"""
+
+test-check-hardcoded-secrets = """
+    detect-secrets scan 
+"""
+
+test-check-security = """
+    bandit -r qlogicae_cor
+"""
+
+test-check-pip-deployment-build = """
     twine check output/build/release/dist/*
 """
 
-deploy = """
+benchmark-create-memray-usage-import-only = """
+    memray run -o output/benchmark/usage.import_only.bin -m test.qlogicae_cor.v3.benchmark.usage.import_only
+"""
+
+benchmark-view-memray-usage-import-only = """
+    memray tree output/benchmark/usage.import_only.bin
+"""
+
+benchmark-create-memray-usage-import-and-allocate = """
+    memray run -o output/benchmark/usage.import_and_allocate.bin -m test.qlogicae_cor.v3.benchmark.usage.import_and_allocate
+"""
+
+benchmark-view-memray-usage-import-and-allocate = """
+    memray tree output/benchmark/usage.import_and_allocate.bin
+"""
+
+benchmark-short-library-import-memory-usage = """
+    ./.venv/bin/python -m test.qlogicae_cor.v3.benchmark.tool \
+        qlogicae_cor.v3 \
+        --json-output output/benchmark/import-library-memory-usage.json \
+        --repetitions 1
+"""
+
+benchmark-long-experiment-import-memory-usage = """
+    ./.venv/bin/python -m test.qlogicae_cor.v3.benchmark.tool \
+        test.qlogicae_cor.v3.benchmark.import_experiment.static_import \
+        test.qlogicae_cor.v3.benchmark.import_experiment.old_dynamic_import \
+        test.qlogicae_cor.v3.benchmark.import_experiment.typeless_with_static_class_import \
+        test.qlogicae_cor.v3.benchmark.import_experiment.typeless_with_dynamic_class_import \
+        test.qlogicae_cor.v3.benchmark.import_experiment.empty_package \
+        --json-output output/benchmark/import-experiment-memory-usage.json/ \
+        --repetitions 20
+"""
+
+benchmark-long-library-import-memory-usage = """
+    ./.venv/bin/python -m test.qlogicae_cor.v3.benchmark.tool \
+        qlogicae_cor.v1 \
+        qlogicae_cor.v2 \
+        qlogicae_cor.v3 \
+        --json-output output/benchmark/import-library-memory-usage.json \
+        --repetitions 20
+"""
+
+deploy-build-release = """
     twine upload output/build/release/dist/* --config-file .pypirc
 """
 
-
-
-test-benchmark-memory-usage-create = """
-    memray run -o output/test/benchmark/memray-1.bin -m test.qlogicae_cor.v1.benchmark.memory_usage.test_imports ;
-"""
-test-benchmark-memory-usage-view = """
-    memray tree output/test/benchmark/memray-1.bin
-"""
-github-workflow-setup = """
-    mkdir -p output/build/release &&
-    mkdir -p output/test/unit &&
-    mkdir -p output/test/benchmark
-"""
-github-workflow-test-type-check = """
-    hatch run github-workflow-setup &&
-    hatch run test-type-check
-"""
-github-workflow-test-lint = """
-    hatch run github-workflow-setup &&
-    hatch run test-lint
-"""
-github-workflow-test-unit = """
-    hatch run github-workflow-setup &&
-    hatch run test-unit
+usage-install-release = """
+    ./.venv/bin/python -m pip install --force-reinstall output/build/release/dist/*.whl
 """
 
+usage-uninstall-release = """
+    ./.venv/bin/python -m pip uninstall -y output/build/release/dist/*.whl
+"""
