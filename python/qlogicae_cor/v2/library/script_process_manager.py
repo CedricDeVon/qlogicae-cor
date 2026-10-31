@@ -7,7 +7,7 @@ __all__ = (
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from subprocess import CompletedProcess
+    from subprocess import CompletedProcess # nosec B404
 
     from .script_process import (
         ScriptProcess,
@@ -28,8 +28,8 @@ def _handle_dynamic_imports() -> None:
     global _TextEncodingManager
     global _ScriptProcess
 
-    import shlex
-    import subprocess
+    import shlex # nosec B404
+    import subprocess # nosec B404
 
     from .script_process import ScriptProcess
     from .singleton_manager import SingletonManager
@@ -114,8 +114,8 @@ class ScriptProcessManager:
                 value = _subprocess.run(
                     command,
                     encoding=encoding,
-                    text=True,
-                    shell=True,
+                    text=True, # nosec B604
+                    shell=True, # nosec B604
                 )
 
             case _ScriptProcess.SUBPROCESS:

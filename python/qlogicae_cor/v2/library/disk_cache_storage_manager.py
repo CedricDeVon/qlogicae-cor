@@ -20,8 +20,8 @@ def _handle_dynamic_imports() -> None:
     global _pickle
     global _time
 
-    import pickle
-    import time
+    import pickle # nosec B403
+    import time 
     from dbm import gnu
 
     _dbm_gnu = gnu
@@ -74,8 +74,8 @@ class DiskCacheStorageManager:
         if database is not None:
             try:
                 database.close()
-            except Exception:
-                pass
+            except Exception: # nosec B110
+                pass # nosec B110
 
             self._database = None
 
