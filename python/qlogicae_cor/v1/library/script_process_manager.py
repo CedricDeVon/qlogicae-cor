@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from subprocess import CompletedProcess
+    from subprocess import CompletedProcess # nosec B404
 
     from qlogicae_cor.v1.library.script_process import (
         ScriptProcess,
@@ -24,8 +24,8 @@ def _handle_dynamic_imports() -> None:
     global _text_encoding_manager
     global _script_process
 
-    import shlex
-    import subprocess
+    import shlex # nosec B404
+    import subprocess # nosec B404
 
     import qlogicae_cor.v1.library.script_process
     import qlogicae_cor.v1.library.singleton_manager
@@ -107,8 +107,8 @@ class ScriptProcessManager:
                 value = _subprocess.run(
                     command,
                     encoding=encoding,
-                    text=True,
-                    shell=True,
+                    text=True, # nosec B604
+                    shell=True, # nosec B604
                 )
 
             case _script_process.SUBPROCESS:
