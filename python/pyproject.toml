@@ -1,6 +1,6 @@
 [project]
 name = "qlogicae-cor"
-version = "3.0.0"
+version = "3.1.0"
 description = "The core library for QLogicae projects"
 readme = { file = "README.md", content-type = "text/markdown" }
 requires-python = ">=3.12"
@@ -249,7 +249,7 @@ test-check-pip-deployment-build = """
 """
 
 benchmark-create-memray-usage-import-only = """
-    memray run -o output/benchmark/usage.import_only.bin -m test.qlogicae_cor.v3.benchmark.usage.import_only
+    memray run -o output/benchmark/usage.import_only.bin -m test.qlogicae_cor.v3.benchmark.usage.import_only --force
 """
 
 benchmark-view-memray-usage-import-only = """
@@ -257,7 +257,7 @@ benchmark-view-memray-usage-import-only = """
 """
 
 benchmark-create-memray-usage-import-and-allocate = """
-    memray run -o output/benchmark/usage.import_and_allocate.bin -m test.qlogicae_cor.v3.benchmark.usage.import_and_allocate
+    memray run -o output/benchmark/usage.import_and_allocate.bin -m test.qlogicae_cor.v3.benchmark.usage.import_and_allocate --force
 """
 
 benchmark-view-memray-usage-import-and-allocate = """
