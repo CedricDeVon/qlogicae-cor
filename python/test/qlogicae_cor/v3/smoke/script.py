@@ -51,6 +51,9 @@ def main():
         from qlogicae_cor.v3.library.timestamp_manager import TimestampManager
         from qlogicae_cor.v3.library.value_cache_manager import ValueCacheManager
         from qlogicae_cor.v3.library.value_cache_storage_manager import ValueCacheStorageManager
+        from qlogicae_cor.v3.library.cli_app_manager import CliAppManager
+        from qlogicae_cor.v3.library.plugin_manager import PluginManager
+        from qlogicae_cor.v3.library.python_module_manager import PythonModuleManager
 
         AsynchronousManager()
         ConsoleLogManager()
@@ -98,6 +101,9 @@ def main():
         TimestampManager()
         ValueCacheManager()
         ValueCacheStorageManager()
+        CliAppManager()
+        PluginManager()
+        PythonModuleManager()
 
         print(f"'${package_name}' | Import Smoke Test Complete!")
         
