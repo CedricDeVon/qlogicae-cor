@@ -47,6 +47,9 @@ def _allocate_module():
             self,
             **kwargs,
         ):
+            if not kwargs:
+                return tuple()
+
             target_filesystem_paths = kwargs.get(
                 "target_filesystem_paths",
                 (),
@@ -68,6 +71,8 @@ def _allocate_module():
                     for path in target_filesystem_paths
                 )
             )
+            if not folder_paths:
+                return tuple()
 
             excluded_paths = {
                 (

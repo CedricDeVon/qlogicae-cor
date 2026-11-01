@@ -85,6 +85,12 @@ def _allocate_module():
             result = (
                 self.setup_parser() and result
             )
+            result = (
+                self.setup_parsed_arguments() and result
+            )
+            result = (
+                self.setup_command_handler() and result
+            )
 
             return result
 
@@ -93,17 +99,11 @@ def _allocate_module():
                 result = True
 
                 result = (
-                    self.setup_parsed_arguments() and result
-                )
-                result = (
-                    self.setup_command_handler() and result
-                )
-                result = (
                     self.parse_arguments() and result
                 )
 
             except (OSError, ValueError, RuntimeError) as error:
-                print(f"\033[91m{error}\033[0m")
+                self.print_error(error)
                 result = False
 
             return (
@@ -111,6 +111,11 @@ def _allocate_module():
                     result
                 )
             )
+
+        def print_error(self, message):
+            print(f"\033[91m{message}\033[0m")
+
+            return True
 
         def evaluate_cli_output(self, value):
             return 0 if value else 1
@@ -140,43 +145,48 @@ def _allocate_module():
             return True
 
         def setup_parser(self):
-            plugin_manager = (
-                PluginManager().get_singleton()
-            )
-            if not plugin_manager:
+            plugin_manager = PluginManager().get_singleton()
+
+            if plugin_manager is None:
                 return False
 
-            module_exports = (
-                plugin_manager.module_exports
-            )
-            if not module_exports:
+            module_exports = plugin_manager.module_exports or {}
+
+            plugin_module_exports = module_exports.get("cli") or {}
+
+            if not isinstance(plugin_module_exports, dict):
                 return False
+
+            parser_args = plugin_module_exports.get("args") or ()
+            parser_kwargs = plugin_module_exports.get("kwargs") or {}
 
             self._parser = _argparse.ArgumentParser(
-                *module_exports.get("args", ()),
-                **module_exports.get("kwargs", {}),
+                *parser_args,
+                **parser_kwargs,
             )
 
-            commands = module_exports.get("commands", ())
+            commands = plugin_module_exports.get("commands") or ()
 
             if not commands:
-                return False
+                return True
 
-            subparser_configuration = module_exports.get(
-                "subparsers",
-                {},
+            subparser_configuration = (
+                plugin_module_exports.get("subparsers") or {}
             )
 
+            subparser_args = subparser_configuration.get("args") or ()
+            subparser_kwargs = subparser_configuration.get("kwargs") or {}
+
             subparsers = self._parser.add_subparsers(
-                *subparser_configuration.get("args", ()),
-                **subparser_configuration.get("kwargs", {}),
+                *subparser_args,
+                **subparser_kwargs,
             )
 
             for command in commands:
                 command_parser = subparsers.add_parser(
                     command["name"],
-                    *command.get("args", ()),
-                    **command.get("kwargs", {}),
+                    *(command.get("args") or ()),
+                    **(command.get("kwargs") or {}),
                 )
 
                 command_handler = command.get("command_handler")
@@ -186,10 +196,12 @@ def _allocate_module():
                         command_handler=command_handler,
                     )
 
-                for argument in command.get("arguments", ()):
+                arguments = command.get("arguments") or ()
+
+                for argument in arguments:
                     command_parser.add_argument(
-                        *argument.get("args", ()),
-                        **argument.get("kwargs", {}),
+                        *(argument.get("args") or ()),
+                        **(argument.get("kwargs") or {}),
                     )
 
             return True
