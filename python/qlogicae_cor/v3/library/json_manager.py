@@ -8,12 +8,7 @@ _JsonManager = None
 
 def _allocate_module():
     global _allocate_module
-    global _Path
     global _JsonManager
-
-    from pathlib import Path
-
-    _Path = Path
 
     class __JsonManager:
         __slots__ = (
@@ -26,12 +21,10 @@ def _allocate_module():
         _singleton = None
 
         def __init__(self):
-            self._valid_file_extensions = {
-                ".json",
-            }
-            self._is_ascii_format_enabled = False
-            self._indent_count = 4
-            self._is_key_sortable = False
+            self.construct()
+
+        def __exit__(self, exc_type, exc_value, traceback):
+            self.shutdown()
 
         @classmethod
         def get_singleton(cls):
@@ -92,6 +85,32 @@ def _allocate_module():
             value,
         ):
             self._is_key_sortable = value
+
+        def construct(self):
+            global _Path
+
+            from pathlib import Path
+
+            _Path = Path
+
+            self._valid_file_extensions = {
+                ".json",
+            }
+            self._is_ascii_format_enabled = False
+            self._indent_count = 4
+            self._is_key_sortable = False
+
+            return True
+
+        def setup(self, **kwargs):
+            if not kwargs:
+                return False
+
+            return True
+
+        def shutdown(self):
+            return True
+
 
     _JsonManager = __JsonManager
     _allocate_module = lambda: None

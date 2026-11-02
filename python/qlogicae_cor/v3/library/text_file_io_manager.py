@@ -10,19 +10,7 @@ _TextFileIoManager = None
 
 def _allocate_module():
     global _allocate_module
-    global _pathlib
-    global _PythonRuntimeUtilityManager
-    global _TextEncodingManager
     global _TextFileIoManager
-
-    import pathlib
-
-    from .python_runtime_utility_manager import PythonRuntimeUtilityManager
-    from .text_encoding_manager import TextEncodingManager
-
-    _pathlib = pathlib
-    _PythonRuntimeUtilityManager = PythonRuntimeUtilityManager()
-    _TextEncodingManager = TextEncodingManager().get_singleton
 
     class __TextFileIoManager:
         __slots__ = ()
@@ -30,8 +18,10 @@ def _allocate_module():
         _singleton = None
 
         def __init__(self):
-            if _PythonRuntimeUtilityManager.is_allocated_during_object_construction:
-                _TextEncodingManager()
+            self.construct()
+
+        def __exit__(self, exc_type, exc_value, traceback):
+            self.shutdown()
 
         @classmethod
         def get_singleton(cls):
@@ -52,6 +42,36 @@ def _allocate_module():
                 output_data = file.read() or ""
 
             return output_data
+
+        def construct(self):
+            global _pathlib
+            global _PythonRuntimeUtilityManager
+            global _TextEncodingManager
+
+            import pathlib
+
+            from .python_runtime_utility_manager import PythonRuntimeUtilityManager
+            from .text_encoding_manager import TextEncodingManager
+
+            _pathlib = pathlib
+            _PythonRuntimeUtilityManager = (
+                PythonRuntimeUtilityManager().get_singleton
+            )
+            _TextEncodingManager = TextEncodingManager().get_singleton
+
+            if _PythonRuntimeUtilityManager().is_allocated_during_object_construction:
+                _TextEncodingManager()
+
+            return True
+
+        def setup(self, **kwargs):
+            if not kwargs:
+                return False
+
+            return True
+
+        def shutdown(self):
+            return True
 
         def write_file(self, file_path, data):
             path = _pathlib.Path(file_path)

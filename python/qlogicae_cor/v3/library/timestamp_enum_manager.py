@@ -9,21 +9,16 @@ _TimestampEnumManager = None
 
 def _allocate_module():
     global _allocate_module
-    global _EnumConversionValue
-    global _Timestamp
     global _TimestampEnumManager
-
-    from .enum_conversion_value import EnumConversionValue
-    from .timestamp import Timestamp
-
-    _EnumConversionValue = EnumConversionValue()
-    _Timestamp = Timestamp()
 
     class __TimestampEnumManager:
         _singleton = None
 
         def __init__(self):
-            pass
+            self.construct()
+
+        def __exit__(self, exc_type, exc_value, traceback):
+            self.shutdown()
 
         @classmethod
         def get_singleton(cls):
@@ -31,6 +26,27 @@ def _allocate_module():
                 cls._singleton = cls()
 
             return cls._singleton
+
+        def construct(self):
+            global _EnumConversionValue
+            global _Timestamp
+
+            from .enum_conversion_value import EnumConversionValue
+            from .timestamp import Timestamp
+
+            _EnumConversionValue = EnumConversionValue()
+            _Timestamp = Timestamp()
+
+            return True
+
+        def setup(self, **kwargs):
+            if not kwargs:
+                return False
+
+            return True
+
+        def shutdown(self):
+            return True
 
         def convert_value(
             self,

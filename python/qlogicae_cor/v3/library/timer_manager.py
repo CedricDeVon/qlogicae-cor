@@ -10,18 +10,7 @@ _TimerManager = None
 
 def _allocate_module():
     global _allocate_module
-    global _PythonRuntimeUtilityManager
-    global _TimeManager
-    global _TimeUnit
     global _TimerManager
-
-    from .python_runtime_utility_manager import PythonRuntimeUtilityManager
-    from .time_manager import TimeManager
-    from .time_unit import TimeUnit
-
-    _PythonRuntimeUtilityManager = PythonRuntimeUtilityManager()
-    _TimeManager = TimeManager().get_singleton
-    _TimeUnit = TimeUnit()
 
     class __TimerManager:
         __slots__ = (
@@ -32,11 +21,10 @@ def _allocate_module():
         _singleton = None
 
         def __init__(self):
-            if _PythonRuntimeUtilityManager.is_allocated_during_object_construction:
-                _TimeManager()
+            self.construct()
 
-            self._start_timestamp = 0
-            self._stop_timestamp = 0
+        def __exit__(self, exc_type, exc_value, traceback):
+            self.shutdown()
 
         @classmethod
         def get_singleton(cls):
@@ -52,6 +40,38 @@ def _allocate_module():
         @property
         def stop_timestamp(self):
             return self._stop_timestamp
+
+        def construct(self):
+            global _PythonRuntimeUtilityManager
+            global _TimeManager
+            global _TimeUnit
+
+            from .python_runtime_utility_manager import PythonRuntimeUtilityManager
+            from .time_manager import TimeManager
+            from .time_unit import TimeUnit
+
+            _PythonRuntimeUtilityManager = (
+                PythonRuntimeUtilityManager().get_singleton
+            )
+            _TimeManager = TimeManager().get_singleton
+            _TimeUnit = TimeUnit()
+
+            if _PythonRuntimeUtilityManager().is_allocated_during_object_construction:
+                _TimeManager()
+
+            self._start_timestamp = 0
+            self._stop_timestamp = 0
+
+            return True
+
+        def setup(self, **kwargs):
+            if not kwargs:
+                return False
+
+            return True
+
+        def shutdown(self):
+            return True
 
         def start_time(self):
             self._start_timestamp = _TimeManager().current_nanosecond

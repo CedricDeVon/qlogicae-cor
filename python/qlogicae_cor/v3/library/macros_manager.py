@@ -12,25 +12,7 @@ _MacrosManager = None
 
 def _allocate_module():
     global _allocate_module
-    global _re
-    global _Path
-    global _Mapping
-    global _TextEncodingManager
-    global _PythonRuntimeUtilityManager
     global _MacrosManager
-
-    import re
-    from collections.abc import Mapping
-    from pathlib import Path
-
-    from .python_runtime_utility_manager import PythonRuntimeUtilityManager
-    from .text_encoding_manager import TextEncodingManager
-
-    _re = re
-    _Path = Path
-    _Mapping = Mapping
-    _TextEncodingManager = TextEncodingManager().get_singleton
-    _PythonRuntimeUtilityManager = PythonRuntimeUtilityManager()
 
     class __MacrosManager:
         __slots__ = (
@@ -41,18 +23,10 @@ def _allocate_module():
         _singleton = None
 
         def __init__(self):
-            if (
-                _PythonRuntimeUtilityManager
-                .is_allocated_during_object_construction
-            ):
-                _TextEncodingManager()
+            self.construct()
 
-            self._selected_identifier_pattern = (
-                _re.compile(r"^[A-Za-z0-9._-]+$")
-            )
-            self._selected_macros_pattern = (
-                _re.compile(r"\$\{\{\s*([A-Za-z0-9._-]+)\s*\}\}")
-            )
+        def __exit__(self, exc_type, exc_value, traceback):
+            self.shutdown()
 
         @classmethod
         def get_singleton(cls):
@@ -76,6 +50,59 @@ def _allocate_module():
         @selected_macros_pattern.setter
         def selected_macros_pattern(self, value):
             self._selected_macros_pattern = _re.compile(value)
+
+        def construct(self):
+            global _re
+            global _Path
+            global _Mapping
+            global _TextEncodingManager
+            global _PythonRuntimeUtilityManager
+
+            import re
+            from collections.abc import Mapping
+            from pathlib import Path
+
+            from .python_runtime_utility_manager import PythonRuntimeUtilityManager
+            from .text_encoding_manager import TextEncodingManager
+
+            _re = re
+            _Path = Path
+            _Mapping = Mapping
+            _TextEncodingManager = TextEncodingManager().get_singleton
+            _PythonRuntimeUtilityManager = (
+                PythonRuntimeUtilityManager().get_singleton
+            )
+
+            if (
+                _PythonRuntimeUtilityManager()
+                    .is_allocated_during_object_construction
+            ):
+                _TextEncodingManager()
+
+            self._selected_identifier_pattern = (
+                _re.compile(r"^[A-Za-z0-9._-]+$")
+            )
+            self._selected_macros_pattern = (
+                _re.compile(r"\$\{\{\s*([A-Za-z0-9._-]+)\s*\}\}")
+            )
+
+            return True
+
+        def setup(self, **kwargs):
+            if not kwargs:
+                return False
+
+            return True
+
+        def shutdown(self):
+            self._selected_identifier_pattern = (
+                _re.compile(r"^[A-Za-z0-9._-]+$")
+            )
+            self._selected_macros_pattern = (
+                _re.compile(r"\$\{\{\s*([A-Za-z0-9._-]+)\s*\}\}")
+            )
+
+            return True
 
         def _resolve_value(self, value):
             if callable(value):

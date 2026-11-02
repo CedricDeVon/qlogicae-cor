@@ -14,37 +14,16 @@ _TimestampManager = None
 
 def _allocate_module():
     global _allocate_module
-    global _time
-    global _UTC
-    global _datetime
-    global _PythonRuntimeUtilityManager
-    global _TimeUnit
-    global _TimeZoneManager
-    global _Timestamp
     global _TimestampManager
-
-    import time
-    from datetime import UTC, datetime
-
-    from .python_runtime_utility_manager import PythonRuntimeUtilityManager
-    from .time_unit import TimeUnit
-    from .time_zone_manager import TimeZoneManager
-    from .timestamp import Timestamp
-
-    _time = time
-    _UTC = UTC
-    _datetime = datetime
-    _PythonRuntimeUtilityManager = PythonRuntimeUtilityManager()
-    _TimeUnit = TimeUnit
-    _TimeZoneManager = TimeZoneManager().get_singleton
-    _Timestamp = Timestamp
 
     class __TimestampManager:
         _singleton = None
 
         def __init__(self):
-            if _PythonRuntimeUtilityManager.is_allocated_during_object_construction:
-                _TimeZoneManager()
+            self.construct()
+
+        def __exit__(self, exc_type, exc_value, traceback):
+            self.shutdown()
 
         @classmethod
         def get_singleton(cls):
@@ -52,6 +31,47 @@ def _allocate_module():
                 cls._singleton = cls()
 
             return cls._singleton
+
+        def construct(self):
+            global _time
+            global _UTC
+            global _datetime
+            global _PythonRuntimeUtilityManager
+            global _TimeUnit
+            global _TimeZoneManager
+            global _Timestamp
+
+            import time
+            from datetime import UTC, datetime
+
+            from .python_runtime_utility_manager import PythonRuntimeUtilityManager
+            from .time_unit import TimeUnit
+            from .time_zone_manager import TimeZoneManager
+            from .timestamp import Timestamp
+
+            _time = time
+            _UTC = UTC
+            _datetime = datetime
+            _PythonRuntimeUtilityManager = (
+                PythonRuntimeUtilityManager().get_singleton
+            )
+            _TimeUnit = TimeUnit
+            _TimeZoneManager = TimeZoneManager().get_singleton
+            _Timestamp = Timestamp
+
+            if _PythonRuntimeUtilityManager().is_allocated_during_object_construction:
+                _TimeZoneManager()
+
+            return True
+
+        def setup(self, **kwargs):
+            if not kwargs:
+                return False
+
+            return True
+
+        def shutdown(self):
+            return True
 
         def generate_current_timestamp(
             self,

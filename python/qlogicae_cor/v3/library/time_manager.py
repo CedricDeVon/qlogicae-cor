@@ -13,27 +13,7 @@ _TimeManager = None
 
 def _allocate_module():
     global _allocate_module
-    global _time
-    global _date
-    global _datetime
-    global _TimeUnit
-    global _PythonRuntimeUtilityManager
-    global _TimeZoneManager
     global _TimeManager
-
-    import time
-    from datetime import date, datetime
-
-    from .python_runtime_utility_manager import PythonRuntimeUtilityManager
-    from .time_unit import TimeUnit
-    from .time_zone_manager import TimeZoneManager
-
-    _time = time
-    _date = date
-    _datetime = datetime
-    _TimeUnit = TimeUnit()
-    _PythonRuntimeUtilityManager = PythonRuntimeUtilityManager()
-    _TimeZoneManager = TimeZoneManager().get_singleton
 
     class __TimeManager:
         __slots__ = (
@@ -43,27 +23,10 @@ def _allocate_module():
         _singleton = None
 
         def __init__(self):
-            if (
-                _PythonRuntimeUtilityManager
-                .is_allocated_during_object_construction
-            ):
-                _TimeZoneManager()
+            self.construct()
 
-            self._TIME_UNIT_TO_NANOSECONDS = {
-                _TimeUnit.NANOSECOND: 1.0,
-                _TimeUnit.MICROSECOND: 1e3,
-                _TimeUnit.MILLISECOND: 1e6,
-                _TimeUnit.SECOND: 1e9,
-                _TimeUnit.MINUTE: 60e9,
-                _TimeUnit.HOUR: 3600e9,
-                _TimeUnit.DAY: 86400e9,
-                _TimeUnit.WEEK: 604800e9,
-                _TimeUnit.MONTH: 2629746e9,
-                _TimeUnit.YEAR: 31556952e9,
-                _TimeUnit.DECADE: 315569520e9,
-                _TimeUnit.CENTURY: 3155695200e9,
-                _TimeUnit.MILLENNIUM: 31556952000e9,
-            }
+        def __exit__(self, exc_type, exc_value, traceback):
+            self.shutdown()
 
         @classmethod
         def get_singleton(cls):
@@ -145,6 +108,55 @@ def _allocate_module():
             return (
                 self.current_year - 1
             ) // 1000 + 1
+
+        def construct(self):
+            global _time
+            global _date
+            global _datetime
+            global _TimeUnit
+            global _PythonRuntimeUtilityManager
+            global _TimeZoneManager
+
+            import time
+            from datetime import date, datetime
+
+            from .python_runtime_utility_manager import PythonRuntimeUtilityManager
+            from .time_unit import TimeUnit
+            from .time_zone_manager import TimeZoneManager
+
+            _time = time
+            _date = date
+            _datetime = datetime
+            _TimeUnit = TimeUnit()
+            _PythonRuntimeUtilityManager = PythonRuntimeUtilityManager()
+            _TimeZoneManager = TimeZoneManager().get_singleton
+
+            self._TIME_UNIT_TO_NANOSECONDS = {
+                _TimeUnit.NANOSECOND: 1.0,
+                _TimeUnit.MICROSECOND: 1e3,
+                _TimeUnit.MILLISECOND: 1e6,
+                _TimeUnit.SECOND: 1e9,
+                _TimeUnit.MINUTE: 60e9,
+                _TimeUnit.HOUR: 3600e9,
+                _TimeUnit.DAY: 86400e9,
+                _TimeUnit.WEEK: 604800e9,
+                _TimeUnit.MONTH: 2629746e9,
+                _TimeUnit.YEAR: 31556952e9,
+                _TimeUnit.DECADE: 315569520e9,
+                _TimeUnit.CENTURY: 3155695200e9,
+                _TimeUnit.MILLENNIUM: 31556952000e9,
+            }
+
+            return True
+
+        def setup(self, **kwargs):
+            if not kwargs:
+                return False
+
+            return True
+
+        def shutdown(self):
+            return True
 
         def calculate_elapsed_time(
             self,

@@ -9,18 +9,16 @@ _TimeUnitEnumManager = None
 
 def _allocate_module():
     global _allocate_module
-    global _EnumConversionValue
-    global _TimeUnit
     global _TimeUnitEnumManager
-
-    from .enum_conversion_value import EnumConversionValue
-    from .time_unit import TimeUnit
-
-    _EnumConversionValue = EnumConversionValue()
-    _TimeUnit = TimeUnit()
 
     class __TimeUnitEnumManager:
         _singleton = None
+
+        def __init__(self):
+            self.construct()
+
+        def __exit__(self, exc_type, exc_value, traceback):
+            self.shutdown()
 
         @classmethod
         def get_singleton(cls):
@@ -28,6 +26,27 @@ def _allocate_module():
                 cls._singleton = cls()
 
             return cls._singleton
+
+        def construct(self):
+            global _EnumConversionValue
+            global _TimeUnit
+
+            from .enum_conversion_value import EnumConversionValue
+            from .time_unit import TimeUnit
+
+            _EnumConversionValue = EnumConversionValue()
+            _TimeUnit = TimeUnit()
+
+            return True
+
+        def setup(self, **kwargs):
+            if not kwargs:
+                return False
+
+            return True
+
+        def shutdown(self):
+            return True
 
         def convert_value(
             self,

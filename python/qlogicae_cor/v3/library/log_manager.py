@@ -12,34 +12,16 @@ _LogManager = None
 
 def _allocate_module():
     global _allocate_module
-    global _logging
-    global _PythonRuntimeUtilityManager
-    global _ConsoleLogManager
-    global _FileLogManager
-    global _LogOptionsManager
     global _LogManager
-
-    import logging
-
-    from .console_log_manager import ConsoleLogManager
-    from .file_log_manager import FileLogManager
-    from .log_options_manager import LogOptionsManager
-    from .python_runtime_utility_manager import PythonRuntimeUtilityManager
-
-    _logging = logging
-    _PythonRuntimeUtilityManager = PythonRuntimeUtilityManager()
-    _ConsoleLogManager = ConsoleLogManager().get_singleton
-    _FileLogManager = FileLogManager().get_singleton
-    _LogOptionsManager = LogOptionsManager().get_singleton
 
     class __LogManager:
         _singleton = None
 
         def __init__(self):
-            if _PythonRuntimeUtilityManager.is_allocated_during_object_construction:
-                _FileLogManager()
-                _ConsoleLogManager()
-                _LogOptionsManager()
+            self.construct()
+
+        def __exit__(self, exc_type, exc_value, traceback):
+            self.shutdown()
 
         @classmethod
         def get_singleton(cls):
@@ -47,6 +29,47 @@ def _allocate_module():
                 cls._singleton = cls()
 
             return cls._singleton
+
+        def construct(self):
+            global _logging
+            global _PythonRuntimeUtilityManager
+            global _ConsoleLogManager
+            global _FileLogManager
+            global _LogOptionsManager
+
+            import logging
+
+            from .console_log_manager import ConsoleLogManager
+            from .file_log_manager import FileLogManager
+            from .log_options_manager import LogOptionsManager
+            from .python_runtime_utility_manager import PythonRuntimeUtilityManager
+
+            _logging = logging
+            _PythonRuntimeUtilityManager = (
+                PythonRuntimeUtilityManager().get_singleton
+            )
+            _ConsoleLogManager = ConsoleLogManager().get_singleton
+            _FileLogManager = FileLogManager().get_singleton
+            _LogOptionsManager = LogOptionsManager().get_singleton
+
+            if _PythonRuntimeUtilityManager().is_allocated_during_object_construction:
+                _FileLogManager()
+                _ConsoleLogManager()
+                _LogOptionsManager()
+
+            return True
+
+        def setup(self, **kwargs):
+            if not kwargs:
+                return False
+
+            return True
+
+        def shutdown(self):
+            _ConsoleLogManager().shutdown()
+            _FileLogManager().shutdown()
+
+            return True
 
         def log(
             self,
@@ -130,11 +153,6 @@ def _allocate_module():
                     log_level=_logging.CRITICAL,
                 ),
             )
-
-        def shutdown(self):
-            _FileLogManager().shutdown()
-
-            return True
 
     _LogManager = __LogManager
     _allocate_module = lambda: None

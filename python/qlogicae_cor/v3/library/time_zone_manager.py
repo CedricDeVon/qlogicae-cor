@@ -10,18 +10,7 @@ _TimeZoneManager = None
 
 def _allocate_module():
     global _allocate_module
-    global _PythonRuntimeUtilityManager
-    global _EnumConversionValue
-    global _TimeZoneEnumManager
     global _TimeZoneManager
-
-    from .enum_conversion_value import EnumConversionValue
-    from .python_runtime_utility_manager import PythonRuntimeUtilityManager
-    from .time_zone_enum_manager import TimeZoneEnumManager
-
-    _PythonRuntimeUtilityManager = PythonRuntimeUtilityManager()
-    _EnumConversionValue = EnumConversionValue()
-    _TimeZoneEnumManager = TimeZoneEnumManager().get_singleton
 
     class __TimeZoneManager:
         __slots__ = (
@@ -32,14 +21,10 @@ def _allocate_module():
         _singleton = None
 
         def __init__(self):
-            if _PythonRuntimeUtilityManager.is_allocated_during_object_construction:
-                _TimeZoneEnumManager()
+            self.construct()
 
-            self._selected_time_zone_type = "local"
-            self._valid_time_zone_types = {
-                "local",
-                "utc",
-            }
+        def __exit__(self, exc_type, exc_value, traceback):
+            self.shutdown()
 
         @classmethod
         def get_singleton(cls):
@@ -68,6 +53,44 @@ def _allocate_module():
                 self._selected_time_zone_type,
                 _EnumConversionValue.CUSTOM,
             )
+
+        def construct(self):
+            global _PythonRuntimeUtilityManager
+            global _EnumConversionValue
+            global _TimeZoneEnumManager
+
+            from .enum_conversion_value import EnumConversionValue
+            from .python_runtime_utility_manager import PythonRuntimeUtilityManager
+            from .time_zone_enum_manager import TimeZoneEnumManager
+
+            _PythonRuntimeUtilityManager = (
+                PythonRuntimeUtilityManager().get_singleton
+            )
+            _EnumConversionValue = EnumConversionValue()
+            _TimeZoneEnumManager = TimeZoneEnumManager().get_singleton
+
+            if _PythonRuntimeUtilityManager().is_allocated_during_object_construction:
+                _TimeZoneEnumManager()
+
+            self._selected_time_zone_type = (
+                "local"
+            )
+            self._valid_time_zone_types = {
+                "local",
+                "utc",
+            }
+
+            return True
+
+        def setup(self, **kwargs):
+            if not kwargs:
+                return False
+
+            return True
+
+        def shutdown(self):
+            return True
+
 
     _TimeZoneManager = __TimeZoneManager
     _allocate_module = lambda: None

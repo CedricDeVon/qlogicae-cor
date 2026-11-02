@@ -11,29 +11,16 @@ _FilesystemManager = None
 
 def _allocate_module():
     global _allocate_module
-    global _shutil
-    global _Path
-    global _FileEntityFilesystemTreeSetupOptions
-    global _FolderEntityFilesystemTreeSetupOptions
     global _FilesystemManager
-
-    import shutil
-    from pathlib import Path
-
-    from .file_entity_filesystem_tree_setup_options import (
-        FileEntityFilesystemTreeSetupOptions,
-    )
-    from .folder_entity_filesystem_tree_setup_options import (
-        FolderEntityFilesystemTreeSetupOptions,
-    )
-
-    _shutil = shutil
-    _Path = Path
-    _FileEntityFilesystemTreeSetupOptions = FileEntityFilesystemTreeSetupOptions()
-    _FolderEntityFilesystemTreeSetupOptions = FolderEntityFilesystemTreeSetupOptions()
 
     class __FilesystemManager:
         _singleton = None
+
+        def __init__(self):
+            self.construct()
+
+        def __exit__(self, exc_type, exc_value, traceback):
+            self.shutdown()
 
         @classmethod
         def get_singleton(cls):
@@ -41,6 +28,42 @@ def _allocate_module():
                 cls._singleton = cls()
 
             return cls._singleton
+
+        def construct(self):
+            global _shutil
+            global _Path
+            global _FileEntityFilesystemTreeSetupOptions
+            global _FolderEntityFilesystemTreeSetupOptions
+
+            import shutil
+            from pathlib import Path
+
+            from .file_entity_filesystem_tree_setup_options import (
+                FileEntityFilesystemTreeSetupOptions,
+            )
+            from .folder_entity_filesystem_tree_setup_options import (
+                FolderEntityFilesystemTreeSetupOptions,
+            )
+
+            _shutil = shutil
+            _Path = Path
+            _FileEntityFilesystemTreeSetupOptions = (
+                FileEntityFilesystemTreeSetupOptions()
+            )
+            _FolderEntityFilesystemTreeSetupOptions = (
+                FolderEntityFilesystemTreeSetupOptions()
+            )
+
+            return True
+
+        def setup(self, **kwargs):
+            if not kwargs:
+                return False
+
+            return True
+
+        def shutdown(self):
+            return True
 
         def throw_if_filesystem_path_invalid(self, value):
             path = _Path(value)

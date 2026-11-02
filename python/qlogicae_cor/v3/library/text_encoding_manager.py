@@ -16,7 +16,10 @@ def _allocate_module():
         _singleton = None
 
         def __init__(self):
-            self._selected_encoding = "utf-8"
+            self.construct()
+
+        def __exit__(self, exc_type, exc_value, traceback):
+            self.shutdown()
 
         @classmethod
         def get_singleton(cls):
@@ -32,6 +35,20 @@ def _allocate_module():
         @selected_encoding.setter
         def selected_encoding(self, value):
             self._selected_encoding = value
+
+        def construct(self):
+            self._selected_encoding = "utf-8"
+            return True
+
+        def setup(self, **kwargs):
+            if not kwargs:
+                return False
+
+            return True
+
+        def shutdown(self):
+            return True
+
 
     _TextEncodingManager = __TextEncodingManager
     _allocate_module = lambda: None

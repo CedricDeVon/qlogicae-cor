@@ -12,25 +12,7 @@ _ScriptProcessManager = None
 
 def _allocate_module():
     global _allocate_module
-    global _shlex
-    global _subprocess
-    global _PythonRuntimeUtilityManager
-    global _TextEncodingManager
-    global _ScriptProcess
     global _ScriptProcessManager
-
-    import shlex  # nosec B404
-    import subprocess  # nosec B404
-
-    from .python_runtime_utility_manager import PythonRuntimeUtilityManager
-    from .script_process import ScriptProcess
-    from .text_encoding_manager import TextEncodingManager
-
-    _shlex = shlex
-    _subprocess = subprocess
-    _PythonRuntimeUtilityManager = PythonRuntimeUtilityManager()
-    _TextEncodingManager = TextEncodingManager().get_singleton
-    _ScriptProcess = ScriptProcess()
 
     class __ScriptProcessManager:
         __slots__ = (
@@ -41,17 +23,10 @@ def _allocate_module():
         _singleton = None
 
         def __init__(self):
-            if (
-                _PythonRuntimeUtilityManager
-                .is_allocated_during_object_construction
-            ):
-                _TextEncodingManager()
+            self.construct()
 
-            self._selected_script_process = "subprocess"
-            self._valid_script_processes = {
-                "shell",
-                "subprocess",
-            }
+        def __exit__(self, exc_type, exc_value, traceback):
+            self.shutdown()
 
         @classmethod
         def get_singleton(cls):
@@ -74,6 +49,51 @@ def _allocate_module():
         @property
         def valid_script_processes(self):
             return self._valid_script_processes
+
+        def construct(self):
+            global _shlex
+            global _subprocess
+            global _PythonRuntimeUtilityManager
+            global _TextEncodingManager
+            global _ScriptProcess
+
+            import shlex  # nosec B404
+            import subprocess  # nosec B404
+
+            from .python_runtime_utility_manager import PythonRuntimeUtilityManager
+            from .script_process import ScriptProcess
+            from .text_encoding_manager import TextEncodingManager
+
+            _shlex = shlex
+            _subprocess = subprocess
+            _PythonRuntimeUtilityManager = (
+                PythonRuntimeUtilityManager().get_singleton
+            )
+            _TextEncodingManager = TextEncodingManager().get_singleton
+            _ScriptProcess = ScriptProcess()
+
+            if (
+                _PythonRuntimeUtilityManager()
+                .is_allocated_during_object_construction
+            ):
+                _TextEncodingManager()
+
+            self._selected_script_process = "subprocess"
+            self._valid_script_processes = {
+                "shell",
+                "subprocess",
+            }
+
+            return True
+
+        def setup(self, **kwargs):
+            if not kwargs:
+                return False
+
+            return True
+
+        def shutdown(self):
+            return True
 
         def execute_command(
             self,

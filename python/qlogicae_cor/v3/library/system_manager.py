@@ -10,18 +10,7 @@ _SystemManager = None
 
 def _allocate_module():
     global _allocate_module
-    global _os
-    global _platform
-    global _path
     global _SystemManager
-
-    import os
-    import pathlib
-    import platform
-
-    _os = os
-    _platform = platform
-    _path = pathlib.Path
 
     class __SystemManager:
         __slots__ = (
@@ -31,9 +20,10 @@ def _allocate_module():
         _singleton = None
 
         def __init__(self):
-            self._original_executing_console_filesystem_path = (
-                f"{_path.cwd().resolve()}"
-            )
+            self.construct()
+
+        def __exit__(self, exc_type, exc_value, traceback):
+            self.shutdown()
 
         @classmethod
         def get_singleton(cls):
@@ -84,6 +74,39 @@ def _allocate_module():
         @property
         def operating_system_architecture(self):
             return _platform.machine()
+
+        def construct(self):
+            global _os
+            global _platform
+            global _path
+
+            import os
+            import pathlib
+            import platform
+
+            _os = os
+            _platform = platform
+            _path = pathlib.Path
+
+            self._original_executing_console_filesystem_path = (
+                f"{_path.cwd().resolve()}"
+            )
+
+            return True
+
+        def setup(self, **kwargs):
+            if not kwargs:
+                return False
+
+            return True
+
+        def shutdown(self):
+            self._original_executing_console_filesystem_path = (
+                f"{_path.cwd().resolve()}"
+            )
+
+            return True
+
 
     _SystemManager = __SystemManager
     _allocate_module = lambda: None

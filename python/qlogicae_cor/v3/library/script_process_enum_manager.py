@@ -9,18 +9,16 @@ _ScriptProcessEnumManager = None
 
 def _allocate_module():
     global _allocate_module
-    global _EnumConversionValue
-    global _ScriptProcess
     global _ScriptProcessEnumManager
-
-    from .enum_conversion_value import EnumConversionValue
-    from .script_process import ScriptProcess
-
-    _EnumConversionValue = EnumConversionValue()
-    _ScriptProcess = ScriptProcess()
 
     class __ScriptProcessEnumManager:
         _singleton = None
+
+        def __init__(self):
+            self.construct()
+
+        def __exit__(self, exc_type, exc_value, traceback):
+            self.shutdown()
 
         @classmethod
         def get_singleton(cls):
@@ -28,6 +26,27 @@ def _allocate_module():
                 cls._singleton = cls()
 
             return cls._singleton
+
+        def construct(self):
+            global _EnumConversionValue
+            global _ScriptProcess
+
+            from .enum_conversion_value import EnumConversionValue
+            from .script_process import ScriptProcess
+
+            _EnumConversionValue = EnumConversionValue()
+            _ScriptProcess = ScriptProcess()
+
+            return True
+
+        def setup(self, **kwargs):
+            if not kwargs:
+                return False
+
+            return True
+
+        def shutdown(self):
+            return True
 
         def convert_value(
             self,

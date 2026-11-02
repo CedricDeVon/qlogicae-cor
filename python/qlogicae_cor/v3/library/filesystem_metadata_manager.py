@@ -9,19 +9,16 @@ _FilesystemMetadataManager = None
 
 def _allocate_module():
     global _allocate_module
-    global _Path
-    global _FilesystemMetadata
     global _FilesystemMetadataManager
-
-    from pathlib import Path
-
-    from .filesystem_metadata import FilesystemMetadata
-
-    _Path = Path
-    _FilesystemMetadata = FilesystemMetadata
 
     class __FilesystemMetadataManager:
         _singleton = None
+
+        def __init__(self):
+            self.construct()
+
+        def __exit__(self, exc_type, exc_value, traceback):
+            self.shutdown()
 
         @classmethod
         def get_singleton(cls):
@@ -29,6 +26,28 @@ def _allocate_module():
                 cls._singleton = cls()
 
             return cls._singleton
+
+        def construct(self):
+            global _Path
+            global _FilesystemMetadata
+
+            from pathlib import Path
+
+            from .filesystem_metadata import FilesystemMetadata
+
+            _Path = Path
+            _FilesystemMetadata = FilesystemMetadata
+
+            return True
+
+        def setup(self, **kwargs):
+            if not kwargs:
+                return False
+
+            return True
+
+        def shutdown(self):
+            return True
 
         def read_metadata(
             self,

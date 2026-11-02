@@ -52,6 +52,20 @@ def _allocate_module():
 
             return instances[abs(index) % instance_count]
 
+        @classmethod
+        def setup(cls, **kwargs):
+            if not kwargs:
+                return False
+
+            return True
+
+        @classmethod
+        def shutdown(cls):
+            cls.reset()
+
+            return True
+
+
     _SingletonManager = __SingletonManager
     _allocate_module = lambda: None
 

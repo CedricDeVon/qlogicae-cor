@@ -17,39 +17,7 @@ _FileLogManager = None
 
 def _allocate_module():
     global _allocate_module
-    global _logging
-    global _queue
-    global _QueueHandler
-    global _QueueListener
-    global _Path
-    global _PythonRuntimeUtilityManager
-    global _TextEncodingManager
-    global _LogFormat
-    global _LogOptions
-    global _LogOptionsManager
     global _FileLogManager
-
-    import logging
-    import queue
-    from logging.handlers import QueueHandler, QueueListener
-    from pathlib import Path
-
-    from .log_format import LogFormat
-    from .log_options import LogOptions
-    from .log_options_manager import LogOptionsManager
-    from .python_runtime_utility_manager import PythonRuntimeUtilityManager
-    from .text_encoding_manager import TextEncodingManager
-
-    _logging = logging
-    _queue = queue
-    _QueueHandler = QueueHandler
-    _QueueListener = QueueListener
-    _Path = Path
-    _PythonRuntimeUtilityManager = PythonRuntimeUtilityManager()
-    _TextEncodingManager = TextEncodingManager().get_singleton
-    _LogFormat = LogFormat()
-    _LogOptions = LogOptions()
-    _LogOptionsManager = LogOptionsManager().get_singleton
 
     class __FileLogManager:
         __slots__ = (
@@ -64,67 +32,18 @@ def _allocate_module():
 
         _singleton = None
 
+        def __init__(self):
+            self.construct()
+
+        def __exit__(self, exc_type, exc_value, traceback):
+            self.shutdown()
+
         @classmethod
         def get_singleton(cls):
             if cls._singleton is None:
                 cls._singleton = cls()
 
             return cls._singleton
-
-        def __init__(self):
-            if _PythonRuntimeUtilityManager.is_allocated_during_object_construction:
-                _LogOptionsManager()
-                _TextEncodingManager()
-
-            self.logger = _logging.getLogger("file-logger")
-            self.logger.setLevel(_logging.DEBUG)
-            self.logger.propagate = False
-            self.logger.handlers.clear()
-
-            self.file_handlers = {}
-
-            self.log_queue = _queue.Queue()
-
-            self.queue_handler = _QueueHandler(
-                self.log_queue,
-            )
-
-            self.logger.addHandler(
-                self.queue_handler,
-            )
-
-            self.listener = _QueueListener(
-                self.log_queue,
-            )
-
-            self.listener.start()
-
-            self._options = _LogOptions()
-            self._cache = []
-
-        def cache_log(self, message, log_level):
-            self._cache.append(
-                (
-                    message,
-                    _LogOptionsManager().generate_modified_defaults(
-                        self._options,
-                        log_level=log_level,
-                    ),
-                )
-            )
-
-            return message
-
-        def log_cached(self):
-            for message, options in self._cache:
-                self.log(
-                    message,
-                    options,
-                )
-
-            self._cache.clear()
-
-            return True
 
         @property
         def options(self):
@@ -156,6 +75,137 @@ def _allocate_module():
                         )
 
             return message
+
+        def construct(self):
+            global _logging
+            global _queue
+            global _QueueHandler
+            global _QueueListener
+            global _Path
+            global _PythonRuntimeUtilityManager
+            global _TextEncodingManager
+            global _LogFormat
+            global _LogOptions
+            global _LogOptionsManager
+
+            import logging
+            import queue
+            from logging.handlers import QueueHandler, QueueListener
+            from pathlib import Path
+
+            from .log_format import LogFormat
+            from .log_options import LogOptions
+            from .log_options_manager import LogOptionsManager
+            from .python_runtime_utility_manager import PythonRuntimeUtilityManager
+            from .text_encoding_manager import TextEncodingManager
+
+            _logging = logging
+            _queue = queue
+            _QueueHandler = QueueHandler
+            _QueueListener = QueueListener
+            _Path = Path
+            _PythonRuntimeUtilityManager = (
+                PythonRuntimeUtilityManager().get_singleton
+            )
+            _TextEncodingManager = TextEncodingManager().get_singleton
+            _LogFormat = LogFormat()
+            _LogOptions = LogOptions()
+            _LogOptionsManager = LogOptionsManager().get_singleton
+
+            if _PythonRuntimeUtilityManager().is_allocated_during_object_construction:
+                _LogOptionsManager()
+                _TextEncodingManager()
+
+            self.logger = _logging.getLogger("file-logger")
+            self.logger.setLevel(_logging.DEBUG)
+            self.logger.propagate = False
+            self.logger.handlers.clear()
+
+            self.file_handlers = {}
+
+            self.log_queue = _queue.Queue()
+
+            self.queue_handler = _QueueHandler(
+                self.log_queue,
+            )
+
+            self.logger.addHandler(
+                self.queue_handler,
+            )
+
+            self.listener = _QueueListener(
+                self.log_queue,
+            )
+
+            self.listener.start()
+
+            self._options = _LogOptions()
+            self._cache = []
+
+            return True
+
+        def setup(self, **kwargs):
+            if not kwargs:
+                return False
+
+            self._options = (
+                kwargs.get(
+                    "options",
+                    _LogOptions()
+                ) or _LogOptions()
+            )
+
+            target_filesystem_paths = (
+                kwargs.get(
+                    "target_filesystem_paths",
+                    tuple()
+                ) or tuple()
+            )
+            for target_filesystem_path in target_filesystem_paths:
+                if not target_filesystem_path:
+                    continue
+
+                self.add_file_output(
+                    target_filesystem_path
+                )
+
+            return True
+
+        def shutdown(self):
+            self.log_cached()
+
+            self.listener.stop()
+
+            for handler in self.file_handlers.values():
+                handler.close()
+
+            self.file_handlers.clear()
+
+            return True
+
+        def cache_log(self, message, log_level):
+            self._cache.append(
+                (
+                    message,
+                    _LogOptionsManager().generate_modified_defaults(
+                        self._options,
+                        log_level=log_level,
+                    ),
+                )
+            )
+
+            return message
+
+        def log_cached(self):
+            for message, options in self._cache:
+                self.log(
+                    message,
+                    options,
+                )
+
+            self._cache.clear()
+
+            return True
 
         def log_debug(self, message):
             return self.log(
@@ -267,17 +317,6 @@ def _allocate_module():
 
             return True
 
-        def shutdown(self):
-            self.log_cached()
-
-            self.listener.stop()
-
-            for handler in self.file_handlers.values():
-                handler.close()
-
-            self.file_handlers.clear()
-
-            return True
 
     _FileLogManager = __FileLogManager
     _allocate_module = lambda: None

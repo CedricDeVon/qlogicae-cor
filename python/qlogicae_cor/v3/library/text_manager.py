@@ -17,7 +17,10 @@ def _allocate_module():
         _singleton = None
 
         def __init__(self):
-            self._valid_file_extensions = {".txt"}
+            self.construct()
+
+        def __exit__(self, exc_type, exc_value, traceback):
+            self.shutdown()
 
         @classmethod
         def get_singleton(cls):
@@ -29,6 +32,20 @@ def _allocate_module():
         @property
         def valid_file_extensions(self):
             return self._valid_file_extensions
+
+        def construct(self):
+            return True
+
+        def setup(self, **kwargs):
+            if not kwargs:
+                return False
+
+            return True
+
+        def shutdown(self):
+            self._valid_file_extensions = {".txt"}
+
+            return True
 
         def is_valid(self, file_path):
             if file_path.suffix.lower() not in self.valid_file_extensions:

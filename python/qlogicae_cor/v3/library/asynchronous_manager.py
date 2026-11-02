@@ -12,26 +12,7 @@ _AsynchronousManager = None
 
 def _allocate_module():
     global _allocate_module
-    global _asyncio
-    global _threading
-    global _partial
-    global _ProcessPoolExecutor
-    global _ThreadPoolExecutor
     global _AsynchronousManager
-
-    import asyncio
-    import threading
-    from concurrent.futures import (
-        ProcessPoolExecutor,
-        ThreadPoolExecutor,
-    )
-    from functools import partial
-
-    _asyncio = asyncio
-    _threading = threading
-    _partial = partial
-    _ProcessPoolExecutor = ProcessPoolExecutor
-    _ThreadPoolExecutor = ThreadPoolExecutor
 
     class __AsynchronousManager:
         __slots__ = (
@@ -42,8 +23,13 @@ def _allocate_module():
         _singleton = None
 
         def __init__(self):
-            self._thread_executor = None
-            self._process_executor = None
+            self.construct()
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc_value, traceback):
+            self.shutdown()
 
         @classmethod
         def get_singleton(cls):
@@ -65,6 +51,59 @@ def _allocate_module():
                 self._process_executor = _ProcessPoolExecutor()
 
             return self._process_executor
+
+        def construct(self):
+            global _asyncio
+            global _threading
+            global _partial
+            global _ProcessPoolExecutor
+            global _ThreadPoolExecutor
+
+            import asyncio
+            import threading
+            from concurrent.futures import (
+                ProcessPoolExecutor,
+                ThreadPoolExecutor,
+            )
+            from functools import partial
+
+            _asyncio = asyncio
+            _threading = threading
+            _partial = partial
+            _ProcessPoolExecutor = ProcessPoolExecutor
+            _ThreadPoolExecutor = ThreadPoolExecutor
+
+            self._thread_executor = None
+            self._process_executor = None
+
+            return True
+
+        def setup(self, **kwargs):
+            if not kwargs:
+                return False
+
+            return True
+
+        def shutdown(
+            self,
+            *,
+            wait=True,
+        ):
+            if self._thread_executor is not None:
+                self._thread_executor.shutdown(
+                    wait=wait,
+                )
+
+                self._thread_executor = None
+
+            if self._process_executor is not None:
+                self._process_executor.shutdown(
+                    wait=wait,
+                )
+
+                self._process_executor = None
+
+            return True
 
         async def run_thread(
             self,
@@ -255,35 +294,6 @@ def _allocate_module():
 
             return thread
 
-        def shutdown(
-            self,
-            *,
-            wait=True,
-        ):
-            if self._thread_executor is not None:
-                self._thread_executor.shutdown(
-                    wait=wait,
-                )
-
-                self._thread_executor = None
-
-            if self._process_executor is not None:
-                self._process_executor.shutdown(
-                    wait=wait,
-                )
-
-                self._process_executor = None
-
-        def __enter__(self):
-            return self
-
-        def __exit__(
-            self,
-            exc_type,
-            exc,
-            traceback,
-        ):
-            self.shutdown()
 
     _AsynchronousManager = __AsynchronousManager
     _allocate_module = lambda: None

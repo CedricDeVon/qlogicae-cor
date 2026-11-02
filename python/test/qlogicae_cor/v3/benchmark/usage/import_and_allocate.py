@@ -1,4 +1,10 @@
 from qlogicae_cor.v3.library.asynchronous_manager import AsynchronousManager
+from qlogicae_cor.v3.library.cli_app_manager import CliAppManager
+from qlogicae_cor.v3.library.cli_command_manager import CliCommandManager
+from qlogicae_cor.v3.library.cli_database_manager import CliDatabaseManager
+from qlogicae_cor.v3.library.cli_display_manager import CliDisplayManager
+from qlogicae_cor.v3.library.cli_log_manager import CliLogManager
+from qlogicae_cor.v3.library.cli_plugin_manager import CliPluginManager
 from qlogicae_cor.v3.library.console_log_manager import ConsoleLogManager
 from qlogicae_cor.v3.library.enum_conversion_value import EnumConversionValue
 from qlogicae_cor.v3.library.enum_conversion_value_enum_manager import EnumConversionValueEnumManager
@@ -44,11 +50,16 @@ from qlogicae_cor.v3.library.timestamp_enum_manager import TimestampEnumManager
 from qlogicae_cor.v3.library.timestamp_manager import TimestampManager
 from qlogicae_cor.v3.library.value_cache_manager import ValueCacheManager
 from qlogicae_cor.v3.library.value_cache_storage_manager import ValueCacheStorageManager
-from qlogicae_cor.v3.library.cli_app_manager import CliAppManager
 from qlogicae_cor.v3.library.plugin_manager import PluginManager
 from qlogicae_cor.v3.library.python_module_manager import PythonModuleManager
 
 AsynchronousManager()
+CliAppManager()
+CliCommandManager()
+CliDatabaseManager()
+CliDisplayManager()
+CliLogManager()
+CliPluginManager()
 ConsoleLogManager()
 EnumConversionValue()
 EnumConversionValueEnumManager()
@@ -94,6 +105,5 @@ TimestampEnumManager()
 TimestampManager()
 ValueCacheManager()
 ValueCacheStorageManager()
-CliAppManager()
 PluginManager()
 PythonModuleManager()

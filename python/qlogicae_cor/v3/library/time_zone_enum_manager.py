@@ -11,24 +11,16 @@ _TimeZoneEnumManager = None
 
 def _allocate_module():
     global _allocate_module
-    global _datetime
-    global _UTC
-    global _EnumConversionValue
-    global _TimeZone
     global _TimeZoneEnumManager
-
-    from datetime import UTC, datetime
-
-    from .enum_conversion_value import EnumConversionValue
-    from .time_zone import TimeZone
-
-    _datetime = datetime
-    _UTC = UTC
-    _EnumConversionValue = EnumConversionValue()
-    _TimeZone = TimeZone()
 
     class __TimeZoneEnumManager:
         _singleton = None
+
+        def __init__(self):
+            self.construct()
+
+        def __exit__(self, exc_type, exc_value, traceback):
+            self.shutdown()
 
         @classmethod
         def get_singleton(cls):
@@ -36,6 +28,33 @@ def _allocate_module():
                 cls._singleton = cls()
 
             return cls._singleton
+
+        def construct(self):
+            global _datetime
+            global _UTC
+            global _EnumConversionValue
+            global _TimeZone
+
+            from datetime import UTC, datetime
+
+            from .enum_conversion_value import EnumConversionValue
+            from .time_zone import TimeZone
+
+            _datetime = datetime
+            _UTC = UTC
+            _EnumConversionValue = EnumConversionValue()
+            _TimeZone = TimeZone()
+
+            return True
+
+        def setup(self, **kwargs):
+            if not kwargs:
+                return False
+
+            return True
+
+        def shutdown(self):
+            return True
 
         def convert_value(
             self,

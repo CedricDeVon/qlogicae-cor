@@ -6,35 +6,20 @@ _sys = None
 _pathlib = None
 _importlib_util = None
 _PythonModuleManager = None
-_PythonRuntimeUtilityManager = None
 
 
 def _allocate_module():
     global _allocate_module
-
-    global _sys
-    global _pathlib
-    global _importlib_util
     global _PythonModuleManager
-    global _PythonRuntimeUtilityManager
-
-
-    import importlib.util
-    import pathlib
-    import sys
-
-    from .python_runtime_utility_manager import PythonRuntimeUtilityManager
-
-    _sys = sys
-    _pathlib = pathlib
-    _importlib_util = importlib.util
-    _PythonRuntimeUtilityManager = PythonRuntimeUtilityManager()
 
     class __PythonModuleManager:
         _singleton = None
 
         def __init__(self):
-            pass
+            self.construct()
+
+        def __exit__(self, exc_type, exc_value, traceback):
+            self.shutdown()
 
         @classmethod
         def get_singleton(cls):
@@ -43,7 +28,22 @@ def _allocate_module():
 
             return cls._singleton
 
-        def read_import_modules(
+        def construct(self):
+            global _sys
+            global _pathlib
+            global _importlib_util
+
+            import importlib.util
+            import pathlib
+            import sys
+
+            _sys = sys
+            _pathlib = pathlib
+            _importlib_util = importlib.util
+
+            return True
+
+        def setup(
             self,
             **kwargs,
         ):
@@ -150,6 +150,15 @@ def _allocate_module():
                     modules.append(module)
 
             return tuple(modules)
+
+        def shutdown(self):
+            return True
+
+        def read_loaded_modules(self):
+            return (
+                module_name
+                for module_name in _sys.modules
+            )
 
 
     _PythonModuleManager = __PythonModuleManager

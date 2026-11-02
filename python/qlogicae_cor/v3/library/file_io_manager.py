@@ -10,26 +10,16 @@ _FileIoManager = None
 
 def _allocate_module():
     global _allocate_module
-    global _Path
-    global _PythonRuntimeUtilityManager
-    global _TextEncodingManager
     global _FileIoManager
-
-    from pathlib import Path
-
-    from .python_runtime_utility_manager import PythonRuntimeUtilityManager
-    from .text_encoding_manager import TextEncodingManager
-
-    _Path = Path
-    _PythonRuntimeUtilityManager = PythonRuntimeUtilityManager()
-    _TextEncodingManager = TextEncodingManager().get_singleton
 
     class __FileIoManager:
         _singleton = None
 
         def __init__(self):
-            if _PythonRuntimeUtilityManager.is_allocated_during_object_construction:
-                _TextEncodingManager()
+            self.construct()
+
+        def __exit__(self, exc_type, exc_value, traceback):
+            self.shutdown()
 
         @classmethod
         def get_singleton(cls):
@@ -37,6 +27,36 @@ def _allocate_module():
                 cls._singleton = cls()
 
             return cls._singleton
+
+        def construct(self):
+            global _Path
+            global _PythonRuntimeUtilityManager
+            global _TextEncodingManager
+
+            from pathlib import Path
+
+            from .python_runtime_utility_manager import PythonRuntimeUtilityManager
+            from .text_encoding_manager import TextEncodingManager
+
+            _Path = Path
+            _PythonRuntimeUtilityManager = (
+                PythonRuntimeUtilityManager().get_singleton
+            )
+            _TextEncodingManager = TextEncodingManager().get_singleton
+
+            if _PythonRuntimeUtilityManager().is_allocated_during_object_construction:
+                _TextEncodingManager()
+
+            return True
+
+        def setup(self, **kwargs):
+            if not kwargs:
+                return False
+
+            return True
+
+        def shutdown(self):
+            return True
 
         def read_file(self, file_path):
             path = _Path(file_path)

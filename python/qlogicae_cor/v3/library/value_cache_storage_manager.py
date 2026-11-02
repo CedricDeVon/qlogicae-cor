@@ -8,12 +8,7 @@ _ValueCacheStorageManager = None
 
 def _allocate_module():
     global _allocate_module
-    global _json
     global _ValueCacheStorageManager
-
-    import json
-
-    _json = json
 
     class __ValueCacheStorageManager:
         __slots__ = (
@@ -23,7 +18,37 @@ def _allocate_module():
         _singleton = None
 
         def __init__(self):
+            self.construct()
+
+        def __exit__(self, exc_type, exc_value, traceback):
+            self.shutdown()
+
+        def construct(self):
+            global _json
+
+            import json
+
+            _json = json
+
             self._collection = {}
+
+            return True
+
+        def setup(self, **kwargs):
+            if not kwargs:
+                return False
+
+            self._collection = (
+                kwargs.get(
+                    "data",
+                    {}
+                ) or {}
+            )
+
+            return True
+
+        def shutdown(self):
+            return True
 
         @classmethod
         def get_singleton(cls):
@@ -35,6 +60,10 @@ def _allocate_module():
         @property
         def collection(self):
             return self._collection
+
+        @collection.setter
+        def collection(self, value):
+            self._collection = value
 
         def is_key_found(self, keys):
             if not keys:

@@ -11,29 +11,16 @@ _ValueCacheManager = None
 
 def _allocate_module():
     global _allocate_module
-    global _FilesystemManager
-    global _PythonRuntimeUtilityManager
-    global _TargetCacheValue
-    global _ValueCacheStorageManager
     global _ValueCacheManager
-
-    from .filesystem_manager import FilesystemManager
-    from .python_runtime_utility_manager import PythonRuntimeUtilityManager
-    from .target_cache_value import TargetCacheValue
-    from .value_cache_storage_manager import ValueCacheStorageManager
-
-    _FilesystemManager = FilesystemManager().get_singleton
-    _PythonRuntimeUtilityManager = PythonRuntimeUtilityManager()
-    _TargetCacheValue = TargetCacheValue()
-    _ValueCacheStorageManager = ValueCacheStorageManager().get_singleton
 
     class __ValueCacheManager:
         _singleton = None
 
         def __init__(self):
-            if _PythonRuntimeUtilityManager.is_allocated_during_object_construction:
-                _FilesystemManager()
-                _ValueCacheStorageManager()
+            self.construct()
+
+        def __exit__(self, exc_type, exc_value, traceback):
+            self.shutdown()
 
         @classmethod
         def get_singleton(cls):
@@ -41,6 +28,45 @@ def _allocate_module():
                 cls._singleton = cls()
 
             return cls._singleton
+
+        def construct(self):
+            global _FilesystemManager
+            global _PythonRuntimeUtilityManager
+            global _TargetCacheValue
+            global _ValueCacheStorageManager
+
+            from .filesystem_manager import FilesystemManager
+            from .python_runtime_utility_manager import PythonRuntimeUtilityManager
+            from .target_cache_value import TargetCacheValue
+            from .value_cache_storage_manager import ValueCacheStorageManager
+
+            _FilesystemManager = FilesystemManager().get_singleton
+            _PythonRuntimeUtilityManager = (
+                PythonRuntimeUtilityManager().get_singleton
+            )
+            _TargetCacheValue = TargetCacheValue()
+            _ValueCacheStorageManager = ValueCacheStorageManager().get_singleton
+
+            if _PythonRuntimeUtilityManager().is_allocated_during_object_construction:
+                _FilesystemManager()
+                _ValueCacheStorageManager()
+
+            return True
+
+        def setup(self, **kwargs):
+            if not kwargs:
+                return False
+
+            _ValueCacheStorageManager().setup(
+                **kwargs
+            )
+
+            return True
+
+        def shutdown(self):
+            _ValueCacheStorageManager().shutdown()
+
+            return True
 
         def is_key_found(
             self,

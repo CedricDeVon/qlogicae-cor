@@ -12,25 +12,7 @@ _ConsoleLogManager = None
 
 def _allocate_module():
     global _allocate_module
-    global _logging
-    global _PythonRuntimeUtilityManager
-    global _LogFormat
-    global _LogOptions
-    global _LogOptionsManager
     global _ConsoleLogManager
-
-    import logging
-
-    from .log_format import LogFormat
-    from .log_options import LogOptions
-    from .log_options_manager import LogOptionsManager
-    from .python_runtime_utility_manager import PythonRuntimeUtilityManager
-
-    _logging = logging
-    _PythonRuntimeUtilityManager = PythonRuntimeUtilityManager()
-    _LogFormat = LogFormat()
-    _LogOptions = LogOptions()
-    _LogOptionsManager = LogOptionsManager().get_singleton
 
     class __ConsoleLogManager:
         __slots__ = (
@@ -41,20 +23,10 @@ def _allocate_module():
         _singleton = None
 
         def __init__(self):
-            if _PythonRuntimeUtilityManager.is_allocated_during_object_construction:
-                _LogOptionsManager()
+            self.construct()
 
-            self._logger = _logging.getLogger("console-logger")
-            self._logger.setLevel(_logging.DEBUG)
-            self._logger.propagate = False
-            self._logger.handlers.clear()
-
-            handler = _logging.StreamHandler()
-            handler.setFormatter(_LogFormat())
-
-            self._logger.addHandler(handler)
-
-            self._options = _LogOptions()
+        def __exit__(self, exc_type, exc_value, traceback):
+            self.shutdown()
 
         @classmethod
         def get_singleton(cls):
@@ -70,6 +42,61 @@ def _allocate_module():
         @options.setter
         def options(self, value):
             self._options = value
+
+        def construct(self):
+            global _logging
+            global _PythonRuntimeUtilityManager
+            global _LogFormat
+            global _LogOptions
+            global _LogOptionsManager
+
+            import logging
+
+            from .log_format import LogFormat
+            from .log_options import LogOptions
+            from .log_options_manager import LogOptionsManager
+            from .python_runtime_utility_manager import PythonRuntimeUtilityManager
+
+            _logging = logging
+            _PythonRuntimeUtilityManager = (
+                PythonRuntimeUtilityManager().get_singleton
+            )
+            _LogFormat = LogFormat()
+            _LogOptions = LogOptions()
+            _LogOptionsManager = LogOptionsManager().get_singleton
+
+            if _PythonRuntimeUtilityManager().is_allocated_during_object_construction:
+                _LogOptionsManager()
+
+            self._logger = _logging.getLogger("console-logger")
+            self._logger.setLevel(_logging.DEBUG)
+            self._logger.propagate = False
+            self._logger.handlers.clear()
+
+            handler = _logging.StreamHandler()
+            handler.setFormatter(_LogFormat())
+
+            self._logger.addHandler(handler)
+
+            self._options = _LogOptions()
+
+            return True
+
+        def setup(self, **kwargs):
+            if not kwargs:
+                return False
+
+            self._options = (
+                kwargs.get(
+                    "options",
+                    _LogOptions()
+                ) or _LogOptions()
+            )
+
+            return True
+
+        def shutdown(self):
+            return True
 
         def log(self, message, options):
             if not options.is_enabled:

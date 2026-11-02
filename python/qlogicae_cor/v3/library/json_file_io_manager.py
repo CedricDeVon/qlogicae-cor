@@ -12,33 +12,16 @@ _JsonFileIoManager = None
 
 def _allocate_module():
     global _allocate_module
-    global _json
-    global _Path
-    global _PythonRuntimeUtilityManager
-    global _JsonManager
-    global _TextEncodingManager
     global _JsonFileIoManager
-
-    import json
-    from pathlib import Path
-
-    from .json_manager import JsonManager
-    from .python_runtime_utility_manager import PythonRuntimeUtilityManager
-    from .text_encoding_manager import TextEncodingManager
-
-    _json = json
-    _Path = Path
-    _PythonRuntimeUtilityManager = PythonRuntimeUtilityManager()
-    _JsonManager = JsonManager().get_singleton
-    _TextEncodingManager = TextEncodingManager().get_singleton
 
     class __JsonFileIoManager:
         _singleton = None
 
         def __init__(self):
-            if _PythonRuntimeUtilityManager.is_allocated_during_object_construction:
-                _JsonManager()
-                _TextEncodingManager()
+            self.construct()
+
+        def __exit__(self, exc_type, exc_value, traceback):
+            self.shutdown()
 
         @classmethod
         def get_singleton(cls):
@@ -46,6 +29,43 @@ def _allocate_module():
                 cls._singleton = cls()
 
             return cls._singleton
+
+        def construct(self):
+            global _json
+            global _Path
+            global _PythonRuntimeUtilityManager
+            global _JsonManager
+            global _TextEncodingManager
+
+            import json
+            from pathlib import Path
+
+            from .json_manager import JsonManager
+            from .python_runtime_utility_manager import PythonRuntimeUtilityManager
+            from .text_encoding_manager import TextEncodingManager
+
+            _json = json
+            _Path = Path
+            _PythonRuntimeUtilityManager = (
+                PythonRuntimeUtilityManager().get_singleton
+            )
+            _JsonManager = JsonManager().get_singleton
+            _TextEncodingManager = TextEncodingManager().get_singleton
+
+            if _PythonRuntimeUtilityManager().is_allocated_during_object_construction:
+                _JsonManager()
+                _TextEncodingManager()
+
+            return True
+
+        def setup(self, **kwargs):
+            if not kwargs:
+                return False
+
+            return True
+
+        def shutdown(self):
+            return True
 
         def read_file(self, file_path):
             path = _Path(file_path)

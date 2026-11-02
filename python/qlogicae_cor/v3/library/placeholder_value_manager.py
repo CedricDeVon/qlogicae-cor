@@ -20,10 +20,10 @@ def _allocate_module():
         _singleton = None
 
         def __init__(self):
-            self._none = "none"
-            self._not_a_number = "nan"
-            self._redacted = "redacted"
-            self._expunged = "expunged"
+            self.construct()
+
+        def __exit__(self, exc_type, exc_value, traceback):
+            self.shutdown()
 
         @classmethod
         def get_singleton(cls):
@@ -63,6 +63,24 @@ def _allocate_module():
         @expunged.setter
         def expunged(self, value):
             self._expunged = value
+
+        def construct(self):
+            self._none = "none"
+            self._not_a_number = "nan"
+            self._redacted = "redacted"
+            self._expunged = "expunged"
+
+            return True
+
+        def setup(self, **kwargs):
+            if not kwargs:
+                return False
+
+            return True
+
+        def shutdown(self):
+            return True
+
 
     _PlaceholderValueManager = __PlaceholderValueManager
     _allocate_module = lambda: None
