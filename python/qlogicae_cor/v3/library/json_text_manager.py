@@ -8,8 +8,8 @@ _JsonTextManager = None
 _PythonRuntimeUtilityManager = None
 
 
-def _allocate_module():
-    global _allocate_module
+def _allocate():
+    global _allocate
     global _JsonTextManager
 
     class __JsonTextManager:
@@ -76,12 +76,12 @@ def _allocate_module():
             return result
 
     _JsonTextManager = __JsonTextManager
-    _allocate_module = lambda: None
+    _allocate = lambda: None
 
 
 def JsonTextManager():
     if _JsonTextManager is None:
-        _allocate_module()
+        _allocate()
 
     return _JsonTextManager
 

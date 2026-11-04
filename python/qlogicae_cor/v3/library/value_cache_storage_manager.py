@@ -6,8 +6,8 @@ _json = None
 _ValueCacheStorageManager = None
 
 
-def _allocate_module():
-    global _allocate_module
+def _allocate():
+    global _allocate
     global _ValueCacheStorageManager
 
     class __ValueCacheStorageManager:
@@ -289,12 +289,12 @@ def _allocate_module():
             return True
 
     _ValueCacheStorageManager = __ValueCacheStorageManager
-    _allocate_module = lambda: None
+    _allocate = lambda: None
 
 
 def ValueCacheStorageManager():
     if _ValueCacheStorageManager is None:
-        _allocate_module()
+        _allocate()
 
     return _ValueCacheStorageManager
 

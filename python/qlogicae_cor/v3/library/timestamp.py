@@ -5,8 +5,8 @@ __all__ = (
 _Timestamp = None
 
 
-def _allocate_module():
-    global _allocate_module
+def _allocate():
+    global _allocate
     global _Timestamp
 
     from enum import Enum
@@ -17,12 +17,12 @@ def _allocate_module():
         NONE = 2
 
     _Timestamp = __Timestamp
-    _allocate_module = lambda: None
+    _allocate = lambda: None
 
 
 def Timestamp():
     if _Timestamp is None:
-        _allocate_module()
+        _allocate()
 
     return _Timestamp
 

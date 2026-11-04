@@ -7,8 +7,8 @@ _ScriptProcess = None
 _ScriptProcessEnumManager = None
 
 
-def _allocate_module():
-    global _allocate_module
+def _allocate():
+    global _allocate
     global _ScriptProcessEnumManager
 
     class __ScriptProcessEnumManager:
@@ -83,12 +83,12 @@ def _allocate_module():
                     return _EnumConversionValue.NONE
 
     _ScriptProcessEnumManager = __ScriptProcessEnumManager
-    _allocate_module = lambda: None
+    _allocate = lambda: None
 
 
 def ScriptProcessEnumManager():
     if _ScriptProcessEnumManager is None:
-        _allocate_module()
+        _allocate()
 
     return _ScriptProcessEnumManager
 

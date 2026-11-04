@@ -52,6 +52,7 @@ from qlogicae_cor.v3.library.value_cache_manager import ValueCacheManager
 from qlogicae_cor.v3.library.value_cache_storage_manager import ValueCacheStorageManager
 from qlogicae_cor.v3.library.plugin_manager import PluginManager
 from qlogicae_cor.v3.library.python_module_manager import PythonModuleManager
+from qlogicae_cor.v3.library.external_dependency_manager import ExternalDependencyManager
 
 AsynchronousManager()
 CliAppManager()
@@ -62,6 +63,7 @@ CliLogManager()
 CliPluginManager()
 ConsoleLogManager()
 EnumConversionValue()
+ExternalDependencyManager()
 EnumConversionValueEnumManager()
 FileEntityFilesystemTreeSetupOptions()
 FileIoManager()

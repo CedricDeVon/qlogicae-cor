@@ -7,8 +7,8 @@ _LogOptions = None
 _LogOptionsManager = None
 
 
-def _allocate_module():
-    global _allocate_module
+def _allocate():
+    global _allocate
     global _LogOptionsManager
 
     class __LogOptionsManager:
@@ -69,12 +69,12 @@ def _allocate_module():
             return value
 
     _LogOptionsManager = __LogOptionsManager
-    _allocate_module = lambda: None
+    _allocate = lambda: None
 
 
 def LogOptionsManager():
     if _LogOptionsManager is None:
-        _allocate_module()
+        _allocate()
 
     return _LogOptionsManager
 

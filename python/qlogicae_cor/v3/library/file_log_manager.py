@@ -15,8 +15,8 @@ _LogOptionsManager = None
 _FileLogManager = None
 
 
-def _allocate_module():
-    global _allocate_module
+def _allocate():
+    global _allocate
     global _FileLogManager
 
     class __FileLogManager:
@@ -319,12 +319,12 @@ def _allocate_module():
 
 
     _FileLogManager = __FileLogManager
-    _allocate_module = lambda: None
+    _allocate = lambda: None
 
 
 def FileLogManager():
     if _FileLogManager is None:
-        _allocate_module()
+        _allocate()
 
     return _FileLogManager
 

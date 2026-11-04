@@ -4,8 +4,8 @@ __all__ = (
 
 _LogOptions = None
 
-def _allocate_module():
-    global _allocate_module
+def _allocate():
+    global _allocate
     global _LogOptions
 
     from dataclasses import dataclass
@@ -18,12 +18,12 @@ def _allocate_module():
         stack_level: int = 3
 
     _LogOptions = __LogOptions
-    _allocate_module = lambda: None
+    _allocate = lambda: None
 
 
 def LogOptions():
     if _LogOptions is None:
-        _allocate_module()
+        _allocate()
 
     return _LogOptions
 

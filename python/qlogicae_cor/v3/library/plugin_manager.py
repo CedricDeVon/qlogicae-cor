@@ -11,8 +11,8 @@ _PythonModuleManager = None
 _PythonRuntimeUtilityManager = None
 
 
-def _allocate_module():
-    global _allocate_module
+def _allocate():
+    global _allocate
     global _PluginManager
 
     class __PluginManager:
@@ -193,12 +193,12 @@ def _allocate_module():
             )
 
     _PluginManager = __PluginManager
-    _allocate_module = lambda: None
+    _allocate = lambda: None
 
 
 def PluginManager():
     if _PluginManager is None:
-        _allocate_module()
+        _allocate()
 
     return _PluginManager
 

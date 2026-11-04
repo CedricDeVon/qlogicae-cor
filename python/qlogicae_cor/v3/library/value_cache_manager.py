@@ -9,8 +9,8 @@ _ValueCacheStorageManager = None
 _ValueCacheManager = None
 
 
-def _allocate_module():
-    global _allocate_module
+def _allocate():
+    global _allocate
     global _ValueCacheManager
 
     class __ValueCacheManager:
@@ -193,12 +193,12 @@ def _allocate_module():
             return False
 
     _ValueCacheManager = __ValueCacheManager
-    _allocate_module = lambda: None
+    _allocate = lambda: None
 
 
 def ValueCacheManager():
     if _ValueCacheManager is None:
-        _allocate_module()
+        _allocate()
 
     return _ValueCacheManager
 

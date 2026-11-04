@@ -6,8 +6,8 @@ _enum_conversion_value = None
 _EnumConversionValueEnumManager = None
 
 
-def _allocate_module():
-    global _allocate_module
+def _allocate():
+    global _allocate
     global _EnumConversionValueEnumManager
 
     class __EnumConversionValueEnumManager:
@@ -85,12 +85,12 @@ def _allocate_module():
                     return _enum_conversion_value.NONE
 
     _EnumConversionValueEnumManager = __EnumConversionValueEnumManager
-    _allocate_module = lambda: None
+    _allocate = lambda: None
 
 
 def EnumConversionValueEnumManager():
     if _EnumConversionValueEnumManager is None:
-        _allocate_module()
+        _allocate()
 
     return _EnumConversionValueEnumManager
 

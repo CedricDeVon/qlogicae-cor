@@ -5,8 +5,8 @@ __all__ = (
 _PlaceholderValueManager = None
 
 
-def _allocate_module():
-    global _allocate_module
+def _allocate():
+    global _allocate
     global _PlaceholderValueManager
 
     class __PlaceholderValueManager:
@@ -83,12 +83,12 @@ def _allocate_module():
 
 
     _PlaceholderValueManager = __PlaceholderValueManager
-    _allocate_module = lambda: None
+    _allocate = lambda: None
 
 
 def PlaceholderValueManager():
     if _PlaceholderValueManager is None:
-        _allocate_module()
+        _allocate()
 
     return _PlaceholderValueManager
 

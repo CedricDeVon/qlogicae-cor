@@ -11,8 +11,8 @@ _TimeZoneManager = None
 _TimeManager = None
 
 
-def _allocate_module():
-    global _allocate_module
+def _allocate():
+    global _allocate
     global _TimeManager
 
     class __TimeManager:
@@ -213,12 +213,12 @@ def _allocate_module():
             )
 
     _TimeManager = __TimeManager
-    _allocate_module = lambda: None
+    _allocate = lambda: None
 
 
 def TimeManager():
     if _TimeManager is None:
-        _allocate_module()
+        _allocate()
 
     return _TimeManager
 

@@ -5,8 +5,8 @@ __all__ = (
 _PythonRuntimeUtilityManager = None
 
 
-def _allocate_module():
-    global _allocate_module
+def _allocate():
+    global _allocate
     global _PythonRuntimeUtilityManager
 
     class __PythonRuntimeUtilityManager:
@@ -53,14 +53,12 @@ def _allocate_module():
 
 
     _PythonRuntimeUtilityManager = __PythonRuntimeUtilityManager
-    _allocate_module = lambda: None
+    _allocate = lambda: None
 
 
 def PythonRuntimeUtilityManager():
     if _PythonRuntimeUtilityManager is None:
-        _allocate_module()
+        _allocate()
 
     return _PythonRuntimeUtilityManager
 
-
-# PythonRuntimeUtilityManager()

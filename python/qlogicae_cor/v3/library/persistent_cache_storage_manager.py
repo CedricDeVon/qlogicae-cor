@@ -8,8 +8,8 @@ _time = None
 _PersistentCacheStorageManager = None
 
 
-def _allocate_module():
-    global _allocate_module
+def _allocate():
+    global _allocate
     global _PersistentCacheStorageManager
 
     class __PersistentCacheStorageManager:
@@ -692,12 +692,12 @@ def _allocate_module():
             return True
 
     _PersistentCacheStorageManager = __PersistentCacheStorageManager
-    _allocate_module = lambda: None
+    _allocate = lambda: None
 
 
 def PersistentCacheStorageManager():
     if _PersistentCacheStorageManager is None:
-        _allocate_module()
+        _allocate()
 
     return _PersistentCacheStorageManager
 

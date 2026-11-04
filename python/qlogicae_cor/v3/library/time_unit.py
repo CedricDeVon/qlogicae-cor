@@ -5,8 +5,8 @@ __all__ = (
 _TimeUnit = None
 
 
-def _allocate_module():
-    global _allocate_module
+def _allocate():
+    global _allocate
     global _TimeUnit
 
     from enum import Enum
@@ -28,12 +28,12 @@ def _allocate_module():
         NONE = 13
 
     _TimeUnit = __TimeUnit
-    _allocate_module = lambda: None
+    _allocate = lambda: None
 
 
 def TimeUnit():
     if _TimeUnit is None:
-        _allocate_module()
+        _allocate()
 
     return _TimeUnit
 

@@ -11,8 +11,8 @@ _PythonRuntimeUtilityManager = None
 _PersistentCacheStorageManager = None
 
 
-def _allocate_module():
-    global _allocate_module
+def _allocate():
+    global _allocate
     global _CliAppManager
 
     class __CliAppManager:
@@ -209,12 +209,12 @@ def _allocate_module():
 
 
     _CliAppManager = __CliAppManager
-    _allocate_module = lambda: None
+    _allocate = lambda: None
 
 
 def CliAppManager():
     if _CliAppManager is None:
-        _allocate_module()
+        _allocate()
 
     return _CliAppManager
 

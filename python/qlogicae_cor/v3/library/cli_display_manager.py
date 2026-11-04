@@ -2,14 +2,13 @@ __all__ = (
     "CliDisplayManager",
 )
 
-_PluginManager = None
 _CliPluginManager = None
 _CliDisplayManager = None
 _PythonRuntimeUtilityManager = None
 
 
-def _allocate_module():
-    global _allocate_module
+def _allocate():
+    global _allocate
     global _CliDisplayManager
 
     class __CliDisplayManager:
@@ -31,14 +30,13 @@ def _allocate_module():
             return cls._singleton
 
         def construct(self):
-            global _PluginManager
             global _CliPluginManager
             global _PythonRuntimeUtilityManager
 
-            from .plugin_manager import PluginManager
+            from .cli_plugin_manager import CliPluginManager
             from .python_runtime_utility_manager import PythonRuntimeUtilityManager
 
-            _PluginManager = PluginManager().get_singleton
+            _CliPluginManager = CliPluginManager().get_singleton
             _PythonRuntimeUtilityManager = (
                 PythonRuntimeUtilityManager().get_singleton
             )
@@ -47,7 +45,7 @@ def _allocate_module():
                 _PythonRuntimeUtilityManager()
                     .is_allocated_during_object_construction
             ):
-                _PluginManager()
+                _CliPluginManager()
 
             return True
 
@@ -107,11 +105,11 @@ def _allocate_module():
             return callback()
 
     _CliDisplayManager = __CliDisplayManager
-    _allocate_module = lambda: None
+    _allocate = lambda: None
 
 
 def CliDisplayManager():
     if _CliDisplayManager is None:
-        _allocate_module()
+        _allocate()
 
     return _CliDisplayManager

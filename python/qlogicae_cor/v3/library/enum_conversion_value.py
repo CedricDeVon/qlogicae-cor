@@ -4,8 +4,8 @@ __all__ = (
 
 _EnumConversionValue = None
 
-def _allocate_module():
-    global _allocate_module
+def _allocate():
+    global _allocate
     global _EnumConversionValue
 
     from enum import Enum
@@ -17,12 +17,12 @@ def _allocate_module():
         NONE = 3
 
     _EnumConversionValue = __EnumConversionValue
-    _allocate_module = lambda: None
+    _allocate = lambda: None
 
 
 def EnumConversionValue():
     if _EnumConversionValue is None:
-        _allocate_module()
+        _allocate()
 
     return _EnumConversionValue
 

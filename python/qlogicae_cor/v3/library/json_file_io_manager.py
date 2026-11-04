@@ -10,8 +10,8 @@ _TextEncodingManager = None
 _JsonFileIoManager = None
 
 
-def _allocate_module():
-    global _allocate_module
+def _allocate():
+    global _allocate
     global _JsonFileIoManager
 
     class __JsonFileIoManager:
@@ -103,12 +103,12 @@ def _allocate_module():
             return True
 
     _JsonFileIoManager = __JsonFileIoManager
-    _allocate_module = lambda: None
+    _allocate = lambda: None
 
 
 def JsonFileIoManager():
     if _JsonFileIoManager is None:
-        _allocate_module()
+        _allocate()
 
     return _JsonFileIoManager
 

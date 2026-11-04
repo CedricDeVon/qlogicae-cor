@@ -7,8 +7,8 @@ _FilesystemMetadata = None
 _FilesystemMetadataManager = None
 
 
-def _allocate_module():
-    global _allocate_module
+def _allocate():
+    global _allocate
     global _FilesystemMetadataManager
 
     class __FilesystemMetadataManager:
@@ -69,12 +69,12 @@ def _allocate_module():
             )
 
     _FilesystemMetadataManager = __FilesystemMetadataManager
-    _allocate_module = lambda: None
+    _allocate = lambda: None
 
 
 def FilesystemMetadataManager():
     if _FilesystemMetadataManager is None:
-        _allocate_module()
+        _allocate()
 
     return _FilesystemMetadataManager
 

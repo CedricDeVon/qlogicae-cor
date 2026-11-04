@@ -10,8 +10,8 @@ _ThreadPoolExecutor = None
 _AsynchronousManager = None
 
 
-def _allocate_module():
-    global _allocate_module
+def _allocate():
+    global _allocate
     global _AsynchronousManager
 
     class __AsynchronousManager:
@@ -296,12 +296,12 @@ def _allocate_module():
 
 
     _AsynchronousManager = __AsynchronousManager
-    _allocate_module = lambda: None
+    _allocate = lambda: None
 
 
 def AsynchronousManager():
     if _AsynchronousManager is None:
-        _allocate_module()
+        _allocate()
 
     return _AsynchronousManager
 

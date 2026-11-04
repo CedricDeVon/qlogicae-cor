@@ -7,8 +7,8 @@ _Path = None
 _FilesystemCompressionManager = None
 
 
-def _allocate_module():
-    global _allocate_module
+def _allocate():
+    global _allocate
     global _FilesystemCompressionManager
 
     class __FilesystemCompressionManager:
@@ -116,12 +116,12 @@ def _allocate_module():
             return True
 
     _FilesystemCompressionManager = __FilesystemCompressionManager
-    _allocate_module = lambda: None
+    _allocate = lambda: None
 
 
 def FilesystemCompressionManager():
     if _FilesystemCompressionManager is None:
-        _allocate_module()
+        _allocate()
 
     return _FilesystemCompressionManager
 

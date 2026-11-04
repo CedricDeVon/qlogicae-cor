@@ -9,8 +9,8 @@ _TimeZone = None
 _TimeZoneEnumManager = None
 
 
-def _allocate_module():
-    global _allocate_module
+def _allocate():
+    global _allocate
     global _TimeZoneEnumManager
 
     class __TimeZoneEnumManager:
@@ -111,12 +111,12 @@ def _allocate_module():
                     return _EnumConversionValue.NONE
 
     _TimeZoneEnumManager = __TimeZoneEnumManager
-    _allocate_module = lambda: None
+    _allocate = lambda: None
 
 
 def TimeZoneEnumManager():
     if _TimeZoneEnumManager is None:
-        _allocate_module()
+        _allocate()
 
     return _TimeZoneEnumManager
 

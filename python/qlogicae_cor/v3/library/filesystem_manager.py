@@ -9,8 +9,8 @@ _FolderEntityFilesystemTreeSetupOptions = None
 _FilesystemManager = None
 
 
-def _allocate_module():
-    global _allocate_module
+def _allocate():
+    global _allocate
     global _FilesystemManager
 
     class __FilesystemManager:
@@ -251,12 +251,12 @@ def _allocate_module():
             return True
 
     _FilesystemManager = __FilesystemManager
-    _allocate_module = lambda: None
+    _allocate = lambda: None
 
 
 def FilesystemManager():
     if _FilesystemManager is None:
-        _allocate_module()
+        _allocate()
 
     return _FilesystemManager
 

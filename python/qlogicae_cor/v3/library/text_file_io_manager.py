@@ -8,8 +8,8 @@ _TextEncodingManager = None
 _TextFileIoManager = None
 
 
-def _allocate_module():
-    global _allocate_module
+def _allocate():
+    global _allocate
     global _TextFileIoManager
 
     class __TextFileIoManager:
@@ -90,12 +90,12 @@ def _allocate_module():
             return True
 
     _TextFileIoManager = __TextFileIoManager
-    _allocate_module = lambda: None
+    _allocate = lambda: None
 
 
 def TextFileIoManager():
     if _TextFileIoManager is None:
-        _allocate_module()
+        _allocate()
 
     return _TextFileIoManager
 

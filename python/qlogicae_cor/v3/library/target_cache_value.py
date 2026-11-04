@@ -5,8 +5,8 @@ __all__ = (
 _TargetCacheValue = None
 
 
-def _allocate_module():
-    global _allocate_module
+def _allocate():
+    global _allocate
     global _TargetCacheValue
 
     from enum import Enum
@@ -20,12 +20,12 @@ def _allocate_module():
         NONE = 5
 
     _TargetCacheValue = __TargetCacheValue
-    _allocate_module = lambda: None
+    _allocate = lambda: None
 
 
 def TargetCacheValue():
     if _TargetCacheValue is None:
-        _allocate_module()
+        _allocate()
 
     return _TargetCacheValue
 

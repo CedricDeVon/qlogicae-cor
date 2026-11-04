@@ -5,8 +5,8 @@ __all__ = (
 _GroupSelectionManager = None
 
 
-def _allocate_module():
-    global _allocate_module
+def _allocate():
+    global _allocate
     global _GroupSelectionManager
 
     class __GroupSelectionManager:
@@ -63,12 +63,12 @@ def _allocate_module():
             return tuple(resolved)
 
     _GroupSelectionManager = __GroupSelectionManager
-    _allocate_module = lambda: None
+    _allocate = lambda: None
 
 
 def GroupSelectionManager():
     if _GroupSelectionManager is None:
-        _allocate_module()
+        _allocate()
 
     return _GroupSelectionManager
 

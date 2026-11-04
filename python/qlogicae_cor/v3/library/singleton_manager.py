@@ -5,8 +5,8 @@ __all__ = (
 _SingletonManager = None
 
 
-def _allocate_module():
-    global _allocate_module
+def _allocate():
+    global _allocate
     global _SingletonManager
 
     class __SingletonManager:
@@ -67,12 +67,12 @@ def _allocate_module():
 
 
     _SingletonManager = __SingletonManager
-    _allocate_module = lambda: None
+    _allocate = lambda: None
 
 
 def SingletonManager():
     if _SingletonManager is None:
-        _allocate_module()
+        _allocate()
 
     return _SingletonManager
 

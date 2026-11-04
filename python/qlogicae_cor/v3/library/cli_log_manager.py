@@ -10,8 +10,8 @@ _CliPluginManager = None
 _PythonRuntimeUtilityManager = None
 
 
-def _allocate_module():
-    global _allocate_module
+def _allocate():
+    global _allocate
     global _CliLogManager
 
     class __CliLogManager:
@@ -34,15 +34,17 @@ def _allocate_module():
 
         def construct(self):
             global _LogOptions
-            global _FileLogManager
             global _CliPluginManager
-            global _ConsoleLogManager
             global _PythonRuntimeUtilityManager
 
+            from .cli_plugin_manager import CliPluginManager
             from .log_options import LogOptions
             from .python_runtime_utility_manager import PythonRuntimeUtilityManager
 
             _LogOptions = LogOptions()
+            _CliPluginManager = (
+                CliPluginManager().get_singleton
+            )
             _PythonRuntimeUtilityManager = (
                 PythonRuntimeUtilityManager().get_singleton
             )
@@ -55,13 +57,24 @@ def _allocate_module():
 
             return True
 
-        def setup(self):
+        def setup(self, **kwargs):
+            if not kwargs:
+                return False
+
             if not self.read_plugin_data_is_enabled():
                 return True
 
             self.run_callback_on_pre_setup()
 
             if self.read_plugin_data_file_options_is_enabled():
+                global _FileLogManager
+
+                from .file_log_manager import FileLogManager
+
+                _FileLogManager = (
+                    FileLogManager().get_singleton
+                )
+
                 file_log_manager = (
                     _FileLogManager()
                 )
@@ -75,6 +88,14 @@ def _allocate_module():
                 )
 
             if self.read_plugin_data_console_options_is_enabled():
+                global _ConsoleLogManager
+
+                from .console_log_manager import ConsoleLogManager
+
+                _ConsoleLogManager = (
+                    ConsoleLogManager().get_singleton
+                )
+
                 console_log_manager = (
                     _ConsoleLogManager()
                 )
@@ -221,11 +242,11 @@ def _allocate_module():
 
 
     _CliLogManager = __CliLogManager
-    _allocate_module = lambda: None
+    _allocate = lambda: None
 
 
 def CliLogManager():
     if _CliLogManager is None:
-        _allocate_module()
+        _allocate()
 
     return _CliLogManager

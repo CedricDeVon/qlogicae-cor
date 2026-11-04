@@ -6,8 +6,8 @@ _deepcopy = None
 _ObjectMergeManager = None
 
 
-def _allocate_module():
-    global _allocate_module
+def _allocate():
+    global _allocate
     global _ObjectMergeManager
 
     class __ObjectMergeManager:
@@ -105,12 +105,12 @@ def _allocate_module():
             return _deepcopy(right)
 
     _ObjectMergeManager = __ObjectMergeManager
-    _allocate_module = lambda: None
+    _allocate = lambda: None
 
 
 def ObjectMergeManager():
     if _ObjectMergeManager is None:
-        _allocate_module()
+        _allocate()
 
     return _ObjectMergeManager
 

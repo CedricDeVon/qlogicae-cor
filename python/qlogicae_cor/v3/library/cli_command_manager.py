@@ -9,8 +9,8 @@ _CliCommandManager = None
 _PythonRuntimeUtilityManager = None
 
 
-def _allocate_module():
-    global _allocate_module
+def _allocate():
+    global _allocate
     global _CliCommandManager
 
     class __CliCommandManager:
@@ -68,7 +68,10 @@ def _allocate_module():
 
             return True
 
-        def setup(self):
+        def setup(self, **kwargs):
+            if not kwargs:
+                pass
+
             result = True
             result = (
                 self.run_callback_on_pre_setup() and result
@@ -285,11 +288,11 @@ def _allocate_module():
 
 
     _CliCommandManager = __CliCommandManager
-    _allocate_module = lambda: None
+    _allocate = lambda: None
 
 
 def CliCommandManager():
     if _CliCommandManager is None:
-        _allocate_module()
+        _allocate()
 
     return _CliCommandManager

@@ -2,7 +2,6 @@ __all__ = (
     "CliDatabaseManager",
 )
 
-_PluginManager = None
 _CliPluginManager = None
 _ValueCacheManager = None
 _CliDatabaseManager = None
@@ -10,8 +9,8 @@ _PythonRuntimeUtilityManager = None
 _PersistentCacheStorageManager = None
 
 
-def _allocate_module():
-    global _allocate_module
+def _allocate():
+    global _allocate
     global _CliDatabaseManager
 
     class __CliDatabaseManager:
@@ -33,31 +32,23 @@ def _allocate_module():
             return cls._singleton
 
         def construct(self):
-            global _PluginManager
             global _CliPluginManager
-            global _ValueCacheManager
             global _PythonRuntimeUtilityManager
-            global _PersistentCacheStorageManager
 
-            from .persistent_cache_storage_manager import PersistentCacheStorageManager
-            from .plugin_manager import PluginManager
+            from .cli_plugin_manager import CliPluginManager
             from .python_runtime_utility_manager import PythonRuntimeUtilityManager
-            from .value_cache_manager import ValueCacheManager
 
-            _PluginManager = PluginManager().get_singleton
-            _ValueCacheManager = ValueCacheManager().get_singleton
+            _CliPluginManager = CliPluginManager().get_singleton
+
             _PythonRuntimeUtilityManager = (
                 PythonRuntimeUtilityManager().get_singleton
-            )
-            _PersistentCacheStorageManager = (
-                PersistentCacheStorageManager().get_singleton
             )
 
             if (
                 _PythonRuntimeUtilityManager()
                     .is_allocated_during_object_construction
             ):
-                _PluginManager()
+                _CliPluginManager()
 
             return True
 
@@ -68,6 +59,12 @@ def _allocate_module():
             self.run_callback_on_pre_setup()
 
             if self.read_plugin_data_value_cache_is_enabled():
+                global _ValueCacheManager
+                from .value_cache_manager import ValueCacheManager
+                _ValueCacheManager = (
+                    ValueCacheManager().get_singleton
+                )
+
                 value_cache_manager = (
                     _ValueCacheManager()
                 )
@@ -76,6 +73,14 @@ def _allocate_module():
                 )
 
             if self.read_plugin_data_persistent_cache_is_enabled():
+                global _PersistentCacheStorageManager
+                from .persistent_cache_storage_manager import (
+                    PersistentCacheStorageManager,
+                )
+                _PersistentCacheStorageManager = (
+                    PersistentCacheStorageManager().get_singleton
+                )
+
                 persistent_cache_manager = (
                     _PersistentCacheStorageManager()
                 )
@@ -210,11 +215,11 @@ def _allocate_module():
 
 
     _CliDatabaseManager = __CliDatabaseManager
-    _allocate_module = lambda: None
+    _allocate = lambda: None
 
 
 def CliDatabaseManager():
     if _CliDatabaseManager is None:
-        _allocate_module()
+        _allocate()
 
     return _CliDatabaseManager

@@ -5,8 +5,8 @@ __all__ = (
 _FileEntityFilesystemTreeSetupOptions = None
 
 
-def _allocate_module():
-    global _allocate_module
+def _allocate():
+    global _allocate
     global _FileEntityFilesystemTreeSetupOptions
 
     from dataclasses import dataclass
@@ -21,12 +21,12 @@ def _allocate_module():
     _FileEntityFilesystemTreeSetupOptions = (
         __FileEntityFilesystemTreeSetupOptions
     )
-    _allocate_module = lambda: None
+    _allocate = lambda: None
 
 
 def FileEntityFilesystemTreeSetupOptions():
     if _FileEntityFilesystemTreeSetupOptions is None:
-        _allocate_module()
+        _allocate()
 
     return _FileEntityFilesystemTreeSetupOptions
 

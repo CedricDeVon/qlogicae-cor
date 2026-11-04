@@ -8,8 +8,8 @@ _TimestampManager = None
 _LogFormat = None
 
 
-def _allocate_module():
-    global _allocate_module
+def _allocate():
+    global _allocate
     global _logging
     global _PythonRuntimeUtilityManager
     global _TimestampManager
@@ -43,12 +43,12 @@ def _allocate_module():
             )
 
     _LogFormat = __LogFormat
-    _allocate_module = lambda: None
+    _allocate = lambda: None
 
 
 def LogFormat():
     if _LogFormat is None:
-        _allocate_module()
+        _allocate()
 
     return _LogFormat
 

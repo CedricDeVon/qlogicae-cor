@@ -95,6 +95,7 @@ source = [
     "qlogicae_cor.v3.library.macros_manager",
     "qlogicae_cor.v3.library.object_merge_manager",
     "qlogicae_cor.v3.library.value_cache_storage_manager",
+    "qlogicae_cor.v3.library.external_dependency_manager",
 ]
 branch = true
 
@@ -268,7 +269,7 @@ benchmark-short-library-import-memory-usage = """
     ./.venv/bin/python -m test.qlogicae_cor.v3.benchmark.tool \
         qlogicae_cor.v3 \
         --json-output output/benchmark/import-library-memory-usage.json \
-        --repetitions 1
+        --repetitions 10
 """
 
 benchmark-long-experiment-import-memory-usage = """

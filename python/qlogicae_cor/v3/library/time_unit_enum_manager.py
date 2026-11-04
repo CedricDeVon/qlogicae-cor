@@ -7,8 +7,8 @@ _TimeUnit = None
 _TimeUnitEnumManager = None
 
 
-def _allocate_module():
-    global _allocate_module
+def _allocate():
+    global _allocate
     global _TimeUnitEnumManager
 
     class __TimeUnitEnumManager:
@@ -149,12 +149,12 @@ def _allocate_module():
                     return _EnumConversionValue.NONE
 
     _TimeUnitEnumManager = __TimeUnitEnumManager
-    _allocate_module = lambda: None
+    _allocate = lambda: None
 
 
 def TimeUnitEnumManager():
     if _TimeUnitEnumManager is None:
-        _allocate_module()
+        _allocate()
 
     return _TimeUnitEnumManager
 

@@ -8,8 +8,8 @@ _TimeUnit = None
 _TimerManager = None
 
 
-def _allocate_module():
-    global _allocate_module
+def _allocate():
+    global _allocate
     global _TimerManager
 
     class __TimerManager:
@@ -118,12 +118,12 @@ def _allocate_module():
             return value
 
     _TimerManager = __TimerManager
-    _allocate_module = lambda: None
+    _allocate = lambda: None
 
 
 def TimerManager():
     if _TimerManager is None:
-        _allocate_module()
+        _allocate()
 
     return _TimerManager
 

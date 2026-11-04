@@ -8,8 +8,8 @@ _importlib_util = None
 _PythonModuleManager = None
 
 
-def _allocate_module():
-    global _allocate_module
+def _allocate():
+    global _allocate
     global _PythonModuleManager
 
     class __PythonModuleManager:
@@ -162,12 +162,12 @@ def _allocate_module():
 
 
     _PythonModuleManager = __PythonModuleManager
-    _allocate_module = lambda: None
+    _allocate = lambda: None
 
 
 def PythonModuleManager():
     if _PythonModuleManager is None:
-        _allocate_module()
+        _allocate()
 
     return _PythonModuleManager
 

@@ -5,8 +5,8 @@ __all__ = (
 _FilesystemMetadata = None
 
 
-def _allocate_module():
-    global _allocate_module
+def _allocate():
+    global _allocate
     global _FilesystemMetadata
 
     from dataclasses import dataclass
@@ -25,12 +25,12 @@ def _allocate_module():
         status_change_time: float
 
     _FilesystemMetadata = __FilesystemMetadata
-    _allocate_module = lambda: None
+    _allocate = lambda: None
 
 
 def FilesystemMetadata():
     if _FilesystemMetadata is None:
-        _allocate_module()
+        _allocate()
 
     return _FilesystemMetadata
 

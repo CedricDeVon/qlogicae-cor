@@ -10,8 +10,8 @@ _LogOptionsManager = None
 _ConsoleLogManager = None
 
 
-def _allocate_module():
-    global _allocate_module
+def _allocate():
+    global _allocate
     global _ConsoleLogManager
 
     class __ConsoleLogManager:
@@ -161,12 +161,12 @@ def _allocate_module():
             )
 
     _ConsoleLogManager = __ConsoleLogManager
-    _allocate_module = lambda: None
+    _allocate = lambda: None
 
 
 def ConsoleLogManager():
     if _ConsoleLogManager is None:
-        _allocate_module()
+        _allocate()
 
     return _ConsoleLogManager
 

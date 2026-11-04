@@ -7,8 +7,8 @@ _Timestamp = None
 _TimestampEnumManager = None
 
 
-def _allocate_module():
-    global _allocate_module
+def _allocate():
+    global _allocate
     global _TimestampEnumManager
 
     class __TimestampEnumManager:
@@ -83,12 +83,12 @@ def _allocate_module():
                     return _EnumConversionValue.NONE
 
     _TimestampEnumManager = __TimestampEnumManager
-    _allocate_module = lambda: None
+    _allocate = lambda: None
 
 
 def TimestampEnumManager():
     if _TimestampEnumManager is None:
-        _allocate_module()
+        _allocate()
 
     return _TimestampEnumManager
 

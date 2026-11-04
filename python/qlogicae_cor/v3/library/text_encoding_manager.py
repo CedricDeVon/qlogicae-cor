@@ -4,8 +4,8 @@ __all__ = (
 
 _TextEncodingManager = None
 
-def _allocate_module():
-    global _allocate_module
+def _allocate():
+    global _allocate
     global _TextEncodingManager
 
     class __TextEncodingManager:
@@ -51,12 +51,12 @@ def _allocate_module():
 
 
     _TextEncodingManager = __TextEncodingManager
-    _allocate_module = lambda: None
+    _allocate = lambda: None
 
 
 def TextEncodingManager():
     if _TextEncodingManager is None:
-        _allocate_module()
+        _allocate()
 
     return _TextEncodingManager
 
