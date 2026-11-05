@@ -2,11 +2,10 @@ __all__ = (
     "TimeZoneManager",
 )
 
-_PythonRuntimeUtilityManager = None
 _EnumConversionValue = None
 _TimeZoneEnumManager = None
 _TimeZoneManager = None
-
+_ExternalDependencyManager = None
 
 def _allocate():
     global _allocate
@@ -22,6 +21,9 @@ def _allocate():
 
         def __init__(self):
             self.construct()
+
+        def __enter__(self):
+            return self
 
         def __exit__(self, exc_type, exc_value, traceback):
             self.shutdown()
@@ -49,28 +51,39 @@ def _allocate():
 
         @property
         def selected_time_zone(self):
-            return _TimeZoneEnumManager().convert_value(
+            return _TimeZoneEnumManager().get_singleton().convert_value(
                 self._selected_time_zone_type,
-                _EnumConversionValue.CUSTOM,
+                _EnumConversionValue().CUSTOM,
             )
 
         def construct(self):
-            global _PythonRuntimeUtilityManager
             global _EnumConversionValue
             global _TimeZoneEnumManager
+            global _ExternalDependencyManager
 
-            from .enum_conversion_value import EnumConversionValue
-            from .python_runtime_utility_manager import PythonRuntimeUtilityManager
-            from .time_zone_enum_manager import TimeZoneEnumManager
+            from .external_dependency_manager import ExternalDependencyManager
 
-            _PythonRuntimeUtilityManager = (
-                PythonRuntimeUtilityManager().get_singleton
+            _ExternalDependencyManager = (
+                ExternalDependencyManager().get_singleton
             )
-            _EnumConversionValue = EnumConversionValue()
-            _TimeZoneEnumManager = TimeZoneEnumManager().get_singleton
 
-            if _PythonRuntimeUtilityManager().is_allocated_during_object_construction:
-                _TimeZoneEnumManager()
+            _EnumConversionValue = (
+                _ExternalDependencyManager().import_module(
+                    path=".enum_conversion_value",
+                    package="qlogicae_cor.v3.library",
+                    member="EnumConversionValue",
+                    is_member_callable=True,
+                )
+            )
+
+            _TimeZoneEnumManager = (
+                _ExternalDependencyManager().import_module(
+                    path=".time_zone_enum_manager",
+                    package="qlogicae_cor.v3.library",
+                    member="TimeZoneEnumManager",
+                    is_member_callable=True,
+                )
+            )
 
             self._selected_time_zone_type = (
                 "local"

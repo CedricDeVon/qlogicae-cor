@@ -1572,3 +1572,361 @@ def test_import_target_allocated_module_setter_accepts_arbitrary_value(
 
     assert target.allocated_module is value
 
+
+@pytest.mark.parametrize("value", [True, False])
+def test_import_target_member_callable_setter_accepts_boolean(
+    import_target,
+    value,
+):
+    import_target.is_member_callable = value
+
+    assert import_target.is_member_callable is value
+
+
+@pytest.mark.parametrize("value", [None, 0, 1, "true", [], {}])
+def test_import_target_member_callable_setter_rejects_non_boolean(
+    import_target,
+    value,
+):
+    with pytest.raises(ValueError):
+        import_target.is_member_callable = value
+
+
+def test_import_target_member_setter_accepts_valid_values(
+    import_target,
+):
+    for value in (None, "", "loads", "utilities.handler"):
+        import_target.member = value
+
+        assert import_target.member == (value or None)
+
+
+@pytest.mark.parametrize("value", [123, [], {}, True])
+def test_import_target_member_setter_rejects_invalid_values(
+    import_target,
+    value,
+):
+    with pytest.raises(TypeError):
+        import_target.member = value
+
+
+def test_import_target_member_constructor_accepts_none(
+    import_target_class,
+):
+    target = import_target_class(
+        path="json",
+        member=None,
+    )
+
+    assert target.member is None
+
+
+def test_import_target_member_constructor_accepts_empty_string(
+    import_target_class,
+):
+    target = import_target_class(
+        path="json",
+        member="",
+    )
+
+    assert target.member == ""
+
+
+@pytest.mark.parametrize("value", [123, [], {}, True])
+def test_import_target_member_constructor_rejects_invalid_values(
+    import_target_class,
+    value,
+):
+    with pytest.raises(TypeError):
+        import_target_class(
+            path="json",
+            member=value,
+        )
+
+
+def test_import_target_callable_member_allocation(
+    import_target_class,
+):
+    target = import_target_class(
+        path="json",
+        member="JSONDecoder",
+        is_member_callable=True,
+    )
+
+    result = target.allocate()
+
+    assert isinstance(result, importlib.import_module("json").JSONDecoder)
+    assert target.allocated_module is result
+
+
+def test_import_target_nested_member_allocation(
+    import_target_class,
+):
+    target = import_target_class(
+        path="json",
+        member="decoder.JSONDecoder",
+    )
+
+    result = target.allocate()
+
+    assert result is importlib.import_module("json").decoder.JSONDecoder
+
+
+def test_import_target_callable_member_setter_updates_state(
+    import_target,
+):
+    import_target.is_member_callable = True
+
+    assert import_target.is_member_callable is True
+    assert import_target.path == "json"
+
+
+def test_import_target_setup_with_multiple_kwargs(
+    import_target,
+):
+    assert import_target.setup(
+        option=True,
+        another_option="value",
+    ) is True
+
+
+def test_import_target_setup_rejects_empty_kwargs(
+    import_target,
+):
+    with pytest.raises(ValueError):
+        import_target.setup()
+
+
+def test_manager_setup_with_only_preallocation_argument(
+    manager,
+):
+    assert manager.setup(is_pre_allocated=True) is True
+
+    assert manager.is_pre_allocated is True
+    assert manager.import_targets == {}
+
+
+def test_manager_setup_preserves_preallocation_when_omitted(
+    manager,
+):
+    manager.is_pre_allocated = True
+
+    assert manager.setup(import_targets=[]) is True
+
+    assert manager.is_pre_allocated is True
+
+
+def test_manager_import_module_rejects_empty_name_and_path(
+    manager,
+):
+    with pytest.raises(ValueError):
+        manager.import_module(name="", path="")
+
+    assert manager.import_targets == {}
+
+
+def test_manager_import_module_uses_path_when_name_is_absent(
+    manager,
+):
+    allocation = manager.import_module(path="json")
+
+    assert callable(allocation)
+    assert "json" in manager.import_targets
+
+
+def test_manager_import_module_uses_name_when_provided(
+    manager,
+):
+    allocation = manager.import_module(
+        name="json_alias",
+        path="json",
+    )
+
+    assert callable(allocation)
+    assert "json_alias" in manager.import_targets
+
+
+def test_manager_import_module_rejects_undefined_target(
+    manager,
+    module_under_test,
+    monkeypatch,
+):
+    monkeypatch.setattr(
+        module_under_test,
+        "_ImportTarget",
+        lambda **kwargs: None,
+    )
+
+    with pytest.raises(ValueError, match="import_target"):
+        manager.import_module(path="json")
+
+    assert manager.import_targets == {}
+
+
+def test_manager_import_module_returns_allocate_method(
+    manager,
+):
+    allocation = manager.import_module(path="json")
+
+    assert callable(allocation)
+    assert allocation.__name__ == "allocate"
+
+    module = allocation()
+
+    assert module.__name__ == "json"
+
+
+def test_manager_import_module_reuses_registered_target(
+    manager,
+):
+    first = manager.import_module(path="json")
+    target = manager.import_targets["json"]
+
+    second = manager.import_module(path="json")
+
+    assert manager.import_targets["json"] is target
+    assert first.__self__ is second.__self__
+
+
+def test_manager_import_module_with_callable_member(
+    manager,
+):
+    allocation = manager.import_module(
+        name="json_decoder",
+        path="json",
+        member="JSONDecoder",
+        is_member_callable=True,
+    )
+
+    result = allocation()
+
+    assert isinstance(result, importlib.import_module("json").JSONDecoder)
+
+
+def test_manager_import_module_with_nested_member(
+    manager,
+):
+    allocation = manager.import_module(
+        name="json_decoder",
+        path="json",
+        member="decoder.JSONDecoder",
+    )
+
+    assert allocation() is importlib.import_module("json").decoder.JSONDecoder
+
+
+def test_manager_import_module_with_relative_package(
+    manager,
+    temporary_package,
+):
+    allocation = manager.import_module(
+        name="relative_module",
+        path=".module",
+        package=temporary_package,
+    )
+
+    assert allocation().MODULE_VALUE == 456
+
+
+def test_manager_import_modules_with_empty_list(
+    manager,
+):
+    assert manager.import_modules([]) is True
+    assert manager.import_targets == {}
+
+
+def test_manager_unload_modules_with_empty_list(
+    manager,
+):
+    assert manager.unload_modules([]) is True
+    assert manager.import_targets == {}
+
+
+def test_manager_clear_modules_after_multiple_registrations(
+    manager,
+):
+    manager.import_modules(
+        [
+            {"path": "json"},
+            {"path": "platform"},
+        ]
+    )
+
+    assert manager.clear_modules() is True
+    assert manager.import_targets == {}
+
+
+def test_import_target_member_callable_constructor_state(
+    import_target_class,
+):
+    target = import_target_class(
+        path="json",
+        member="JSONDecoder",
+        is_member_callable=True,
+    )
+
+    assert target.is_member_callable is True
+    assert target.member == "JSONDecoder"
+
+
+def test_import_target_member_callable_allocation_with_nested_member(
+    import_target_class,
+):
+    target = import_target_class(
+        path="json",
+        member="decoder.JSONDecoder",
+        is_member_callable=True,
+    )
+
+    result = target.allocate()
+
+    assert isinstance(result, importlib.import_module("json").JSONDecoder)
+
+
+def test_import_target_allocate_with_empty_member_segments(
+    import_target_class,
+):
+    target = import_target_class(
+        path="json",
+        member=".decoder..JSONDecoder.",
+    )
+
+    assert target.allocate() is importlib.import_module("json").decoder.JSONDecoder
+    
+def test_import_target_construct_defaults_is_member_callable(
+    import_target_class,
+):
+    target = import_target_class(path="json")
+
+    assert target.is_member_callable is False
+
+
+@pytest.mark.parametrize("value", [True, False])
+def test_import_target_construct_accepts_is_member_callable_boolean(
+    import_target_class,
+    value,
+):
+    target = import_target_class(
+        path="json",
+        is_member_callable=value,
+    )
+
+    assert target.is_member_callable is value
+
+
+@pytest.mark.parametrize(
+    "value",
+    [None, 0, 1, "true", "false", [], {}, ()],
+)
+def test_import_target_construct_rejects_invalid_is_member_callable(
+    import_target_class,
+    value,
+):
+    with pytest.raises(
+        ValueError,
+        match="kwargs.is_member_callable",
+    ):
+        import_target_class(
+            path="json",
+            is_member_callable=value,
+        )

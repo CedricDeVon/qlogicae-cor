@@ -2,8 +2,8 @@ __all__ = (
     "ValueCacheStorageManager",
 )
 
-_json = None
 _ValueCacheStorageManager = None
+_ExternalDependencyManager = None
 
 
 def _allocate():
@@ -20,15 +20,20 @@ def _allocate():
         def __init__(self):
             self.construct()
 
+        def __enter__(self):
+            return self
+
         def __exit__(self, exc_type, exc_value, traceback):
             self.shutdown()
 
         def construct(self):
-            global _json
+            global _ExternalDependencyManager
 
-            import json
+            from .external_dependency_manager import ExternalDependencyManager
 
-            _json = json
+            _ExternalDependencyManager = (
+                ExternalDependencyManager().get_singleton
+            )
 
             self._collection = {}
 
@@ -276,8 +281,15 @@ def _allocate():
             return True
 
         def display_all_items(self):
+            _json = (
+                _ExternalDependencyManager()
+                    .import_module(
+                        path="json"
+                    )
+            )
+
             print(
-                _json.dumps(
+                _json().dumps(
                     self._collection,
                     indent=2,
                     sort_keys=False,

@@ -7,7 +7,7 @@ _CliLogManager = None
 _FileLogManager = None
 _ConsoleLogManager = None
 _CliPluginManager = None
-_PythonRuntimeUtilityManager = None
+_ExternalDependencyManager = None
 
 
 def _allocate():
@@ -22,6 +22,9 @@ def _allocate():
         def __init__(self):
             self.construct()
 
+        def __enter__(self):
+            return self
+
         def __exit__(self, exc_type, exc_value, traceback):
             self.shutdown()
 
@@ -35,25 +38,15 @@ def _allocate():
         def construct(self):
             global _LogOptions
             global _CliPluginManager
-            global _PythonRuntimeUtilityManager
+            global _ExternalDependencyManager
 
             from .cli_plugin_manager import CliPluginManager
             from .log_options import LogOptions
-            from .python_runtime_utility_manager import PythonRuntimeUtilityManager
 
             _LogOptions = LogOptions()
             _CliPluginManager = (
                 CliPluginManager().get_singleton
             )
-            _PythonRuntimeUtilityManager = (
-                PythonRuntimeUtilityManager().get_singleton
-            )
-
-            if (
-                _PythonRuntimeUtilityManager()
-                    .is_allocated_during_object_construction
-            ):
-                _CliPluginManager()
 
             return True
 

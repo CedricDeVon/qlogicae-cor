@@ -4,10 +4,10 @@ __all__ = (
 
 _asyncio = None
 _threading = None
-_partial = None
-_ProcessPoolExecutor = None
-_ThreadPoolExecutor = None
+_functools = None
+_concurrent_futures = None
 _AsynchronousManager = None
+_ExternalDependencyManager = None
 
 
 def _allocate():
@@ -41,37 +41,50 @@ def _allocate():
         @property
         def thread_executor(self):
             if self._thread_executor is None:
-                self._thread_executor = _ThreadPoolExecutor()
+                self._thread_executor = _concurrent_futures().ThreadPoolExecutor()
 
             return self._thread_executor
 
         @property
         def process_executor(self):
             if self._process_executor is None:
-                self._process_executor = _ProcessPoolExecutor()
+                self._process_executor = _concurrent_futures().ProcessPoolExecutor()
 
             return self._process_executor
 
         def construct(self):
+            global _ExternalDependencyManager
             global _asyncio
             global _threading
-            global _partial
-            global _ProcessPoolExecutor
-            global _ThreadPoolExecutor
+            global _functools
+            global _concurrent_futures
 
-            import asyncio
-            import threading
-            from concurrent.futures import (
-                ProcessPoolExecutor,
-                ThreadPoolExecutor,
+            from .external_dependency_manager import ExternalDependencyManager
+
+            _ExternalDependencyManager = (
+                ExternalDependencyManager().get_singleton
             )
-            from functools import partial
 
-            _asyncio = asyncio
-            _threading = threading
-            _partial = partial
-            _ProcessPoolExecutor = ProcessPoolExecutor
-            _ThreadPoolExecutor = ThreadPoolExecutor
+            _asyncio = (
+                _ExternalDependencyManager().import_module(
+                    path="asyncio",
+                )
+            )
+            _threading = (
+                _ExternalDependencyManager().import_module(
+                    path="threading",
+                )
+            )
+            _functools = (
+                _ExternalDependencyManager().import_module(
+                    path="functools",
+                )
+            )
+            _concurrent_futures = (
+                _ExternalDependencyManager().import_module(
+                    path="concurrent.futures",
+                )
+            )
 
             self._thread_executor = None
             self._process_executor = None
@@ -112,7 +125,7 @@ def _allocate():
             *args,
             **kwargs,
         ):
-            result = await _asyncio.to_thread(
+            result = await _asyncio().to_thread(
                 function,
                 *args,
                 **kwargs,
@@ -127,11 +140,11 @@ def _allocate():
             *args,
             **kwargs,
         ):
-            loop = _asyncio.get_running_loop()
+            loop = _asyncio().get_running_loop()
 
             result = await loop.run_in_executor(
                 self.thread_executor,
-                _partial(
+                _functools().partial(
                     function,
                     *args,
                     **kwargs,
@@ -147,11 +160,11 @@ def _allocate():
             *args,
             **kwargs,
         ):
-            loop = _asyncio.get_running_loop()
+            loop = _asyncio().get_running_loop()
 
             result = await loop.run_in_executor(
                 self.process_executor,
-                _partial(
+                _functools().partial(
                     function,
                     *args,
                     **kwargs,
@@ -165,7 +178,7 @@ def _allocate():
             *coroutines,
             return_exceptions=False,
         ):
-            result = await _asyncio.gather(
+            result = await _asyncio().gather(
                 *coroutines,
                 return_exceptions=return_exceptions,
             )
@@ -178,11 +191,11 @@ def _allocate():
             timeout=None,
         ):
             tasks = {
-                _asyncio.create_task(coroutine)
+                _asyncio().create_task(coroutine)
                 for coroutine in coroutines
             }
 
-            result = await _asyncio.wait(
+            result = await _asyncio().wait(
                 tasks,
                 timeout=timeout,
             )
@@ -194,7 +207,7 @@ def _allocate():
             coroutine,
             name=None,
         ):
-            result = _asyncio.create_task(
+            result = _asyncio().create_task(
                 coroutine,
                 name=name,
             )
@@ -206,7 +219,7 @@ def _allocate():
             coroutine,
             seconds,
         ):
-            result = await _asyncio.wait_for(
+            result = await _asyncio().wait_for(
                 coroutine,
                 timeout=seconds,
             )
@@ -218,7 +231,7 @@ def _allocate():
             function,
             *iterables,
         ):
-            result = await _asyncio.gather(
+            result = await _asyncio().gather(
                 *(
                     self.run_thread(
                         function,
@@ -238,7 +251,7 @@ def _allocate():
             function,
             *iterables,
         ):
-            result = await _asyncio.gather(
+            result = await _asyncio().gather(
                 *(
                     self.run_thread_pool(
                         function,
@@ -258,7 +271,7 @@ def _allocate():
             function,
             *iterables,
         ):
-            result = await _asyncio.gather(
+            result = await _asyncio().gather(
                 *(
                     self.run_process_pool(
                         function,
@@ -282,7 +295,7 @@ def _allocate():
             start=True,
             **kwargs,
         ):
-            thread = _threading.Thread(
+            thread = _threading().Thread(
                 target=function,
                 args=args,
                 kwargs=kwargs,

@@ -3,11 +3,11 @@ __all__ = (
 )
 
 _logging = None
-_PythonRuntimeUtilityManager = None
 _LogFormat = None
 _LogOptions = None
 _LogOptionsManager = None
 _ConsoleLogManager = None
+_ExternalDependencyManager = None
 
 
 def _allocate():
@@ -24,6 +24,9 @@ def _allocate():
 
         def __init__(self):
             self.construct()
+
+        def __enter__(self):
+            return self
 
         def __exit__(self, exc_type, exc_value, traceback):
             self.shutdown()
@@ -44,41 +47,59 @@ def _allocate():
             self._options = value
 
         def construct(self):
+            global _ExternalDependencyManager
             global _logging
-            global _PythonRuntimeUtilityManager
             global _LogFormat
             global _LogOptions
             global _LogOptionsManager
 
-            import logging
+            from .external_dependency_manager import ExternalDependencyManager
 
-            from .log_format import LogFormat
-            from .log_options import LogOptions
-            from .log_options_manager import LogOptionsManager
-            from .python_runtime_utility_manager import PythonRuntimeUtilityManager
-
-            _logging = logging
-            _PythonRuntimeUtilityManager = (
-                PythonRuntimeUtilityManager().get_singleton
+            _ExternalDependencyManager = (
+                ExternalDependencyManager().get_singleton
             )
-            _LogFormat = LogFormat()
-            _LogOptions = LogOptions()
-            _LogOptionsManager = LogOptionsManager().get_singleton
 
-            if _PythonRuntimeUtilityManager().is_allocated_during_object_construction:
-                _LogOptionsManager()
+            _logging = (
+                _ExternalDependencyManager().import_module(
+                    path="logging",
+                )
+            )
+            _LogFormat = (
+                _ExternalDependencyManager().import_module(
+                    path=".log_format",
+                    package="qlogicae_cor.v3.library",
+                    member="LogFormat",
+                    is_member_callable=True,
+                )
+            )
+            _LogOptions = (
+                _ExternalDependencyManager().import_module(
+                    path=".log_options",
+                    package="qlogicae_cor.v3.library",
+                    member="LogOptions",
+                    is_member_callable=True,
+                )
+            )
+            _LogOptionsManager = (
+                _ExternalDependencyManager().import_module(
+                    path=".log_options_manager",
+                    package="qlogicae_cor.v3.library",
+                    member="LogOptionsManager",
+                    is_member_callable=True,
+                )
+            )
 
-            self._logger = _logging.getLogger("console-logger")
-            self._logger.setLevel(_logging.DEBUG)
+            self._logger = _logging().getLogger("console-logger")
+            self._logger.setLevel(_logging().DEBUG)
             self._logger.propagate = False
             self._logger.handlers.clear()
 
-            handler = _logging.StreamHandler()
-            handler.setFormatter(_LogFormat())
+            handler = _logging().StreamHandler()
+            handler.setFormatter(_LogFormat()())
 
             self._logger.addHandler(handler)
 
-            self._options = _LogOptions()
+            self._options = _LogOptions()()
 
             return True
 
@@ -89,8 +110,8 @@ def _allocate():
             self._options = (
                 kwargs.get(
                     "options",
-                    _LogOptions()
-                ) or _LogOptions()
+                    _LogOptions()()
+                ) or _LogOptions()()
             )
 
             return True
@@ -118,46 +139,51 @@ def _allocate():
         def log_debug(self, message):
             return self.log(
                 message,
-                _LogOptionsManager().generate_modified_defaults(
-                    self._options,
-                    log_level=_logging.DEBUG,
-                ),
+                _LogOptionsManager()
+                    .get_singleton().generate_modified_defaults(
+                        self._options,
+                        log_level=_logging().DEBUG,
+                    ),
             )
 
         def log_info(self, message):
             return self.log(
                 message,
-                _LogOptionsManager().generate_modified_defaults(
-                    self._options,
-                    log_level=_logging.INFO,
-                ),
+                _LogOptionsManager()
+                    .get_singleton().generate_modified_defaults(
+                        self._options,
+                        log_level=_logging().INFO,
+                    ),
             )
 
         def log_warning(self, message):
             return self.log(
                 message,
-                _LogOptionsManager().generate_modified_defaults(
-                    self._options,
-                    log_level=_logging.WARNING,
-                ),
+                _LogOptionsManager()
+                    .get_singleton().generate_modified_defaults(
+                        self._options,
+                        log_level=_logging().WARNING,
+                    ),
             )
 
         def log_error(self, message):
             return self.log(
                 message,
-                _LogOptionsManager().generate_modified_defaults(
-                    self._options,
-                    log_level=_logging.ERROR,
-                ),
+                _LogOptionsManager()
+                    .get_singleton().generate_modified_defaults(
+                        self._options,
+                        log_level=_logging().ERROR,
+                    ),
             )
 
         def log_critical(self, message):
             return self.log(
                 message,
-                _LogOptionsManager().generate_modified_defaults(
-                    self._options,
-                    log_level=_logging.CRITICAL,
-                ),
+                _LogOptionsManager()
+                    .get_singleton().generate_modified_defaults(
+                        self._options,
+                        log_level=_logging().CRITICAL,
+                    ),
             )
 
     _ConsoleLogManager = __ConsoleLogManager

@@ -18,6 +18,8 @@ def _allocate():
             "_package",
             "_allocated_module",
             "_is_pre_allocated",
+            "_is_member_callable",
+            "_member",
         )
 
         def __init__(self, **kwargs):
@@ -53,6 +55,17 @@ def _allocate():
             self._path = value
 
         @property
+        def is_member_callable(self):
+            return self._is_member_callable
+
+        @is_member_callable.setter
+        def is_member_callable(self, value):
+            if not isinstance(value, (bool)):
+                raise ValueError("'is_member_callable' must be a boolean")
+
+            self._is_member_callable = value
+
+        @property
         def package(self):
             return self._package
 
@@ -63,6 +76,18 @@ def _allocate():
 
 
             self._package = value or None
+
+        @property
+        def member(self):
+            return self._member
+
+        @member.setter
+        def member(self, value):
+            if value is not None and not isinstance(value, str):
+                raise TypeError("'member' must be a string or None")
+
+
+            self._member = value or None
 
         @property
         def allocated_module(self):
@@ -113,6 +138,21 @@ def _allocate():
             if not isinstance(is_pre_allocated, bool):
                 raise ValueError("'kwargs.is_pre_allocated' must be a boolean")
 
+            member = kwargs.get("member", "")
+
+            if member is not None and not isinstance(member, str):
+                raise TypeError("'kwargs.member' must be a string or None")
+
+            self._member = member
+
+            is_member_callable = kwargs.get("is_member_callable", False)
+
+            if not isinstance(is_member_callable, bool):
+                raise ValueError("'kwargs.is_member_callable' must be a boolean")
+
+            self._is_member_callable = (
+                is_member_callable
+            )
             self._is_pre_allocated = is_pre_allocated
             self._allocated_module = None
 
@@ -135,25 +175,31 @@ def _allocate():
             if self._allocated_module:
                 return self._allocated_module
 
-            allocated_module = None
             if self._package:
-                allocated_module = (
-                    _importlib.import_module(
-                        self._path,
-                        package=self._package,
-                    )
+                allocated_module = _importlib.import_module(
+                    self._path,
+                    package=self._package,
                 )
+            else:
+                allocated_module = _importlib.import_module(
+                    self._path,
+                )
+
+            if self._member:
+                for name in self._member.split("."):
+                    if not name:
+                        continue
+
+                    allocated_module = getattr(
+                        allocated_module,
+                        name,
+                    )
+
+            if self._is_member_callable:
+                self._allocated_module = allocated_module()
 
             else:
-                allocated_module = (
-                    _importlib.import_module(
-                        self._path,
-                    )
-                )
-
-            self._allocated_module = (
-                allocated_module
-            )
+                self._allocated_module = allocated_module
 
             return self._allocated_module
 

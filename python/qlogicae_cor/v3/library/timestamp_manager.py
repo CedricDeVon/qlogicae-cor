@@ -3,14 +3,12 @@ __all__ = (
 )
 
 _time = None
-_UTC = None
 _datetime = None
-_PythonRuntimeUtilityManager = None
 _TimeUnit = None
 _TimeZoneManager = None
 _Timestamp = None
 _TimestampManager = None
-
+_ExternalDependencyManager = None
 
 def _allocate():
     global _allocate
@@ -21,6 +19,9 @@ def _allocate():
 
         def __init__(self):
             self.construct()
+
+        def __enter__(self):
+            return self
 
         def __exit__(self, exc_type, exc_value, traceback):
             self.shutdown()
@@ -34,33 +35,52 @@ def _allocate():
 
         def construct(self):
             global _time
-            global _UTC
             global _datetime
-            global _PythonRuntimeUtilityManager
             global _TimeUnit
             global _TimeZoneManager
             global _Timestamp
+            global _ExternalDependencyManager
 
-            import time
-            from datetime import UTC, datetime
+            from .external_dependency_manager import ExternalDependencyManager
 
-            from .python_runtime_utility_manager import PythonRuntimeUtilityManager
-            from .time_unit import TimeUnit
-            from .time_zone_manager import TimeZoneManager
-            from .timestamp import Timestamp
-
-            _time = time
-            _UTC = UTC
-            _datetime = datetime
-            _PythonRuntimeUtilityManager = (
-                PythonRuntimeUtilityManager().get_singleton
+            _ExternalDependencyManager = (
+                ExternalDependencyManager().get_singleton
             )
-            _TimeUnit = TimeUnit
-            _TimeZoneManager = TimeZoneManager().get_singleton
-            _Timestamp = Timestamp
 
-            if _PythonRuntimeUtilityManager().is_allocated_during_object_construction:
-                _TimeZoneManager()
+            _time = (
+                _ExternalDependencyManager().import_module(
+                    path="time"
+                )
+            )
+            _datetime = (
+                _ExternalDependencyManager().import_module(
+                    path="datetime",
+                )
+            )
+            _TimeUnit = (
+                _ExternalDependencyManager().import_module(
+                    path=".time_unit",
+                    package="qlogicae_cor.v3.library",
+                    member="TimeUnit",
+                    is_member_callable=True,
+                )
+            )
+            _TimeZoneManager = (
+                _ExternalDependencyManager().import_module(
+                    path=".time_zone_manager",
+                    package="qlogicae_cor.v3.library",
+                    member="TimeZoneManager",
+                    is_member_callable=True,
+                )
+            )
+            _Timestamp = (
+                _ExternalDependencyManager().import_module(
+                    path=".timestamp",
+                    package="qlogicae_cor.v3.library",
+                    member="Timestamp",
+                    is_member_callable=True,
+                )
+            )
 
             return True
 
@@ -78,37 +98,44 @@ def _allocate():
             timestamp=None,
             time_unit=None,
         ):
+            Timestamp = (
+                _Timestamp()
+            )
+            TimeUnit = (
+                _TimeUnit()
+            )
+
             if timestamp is None:
-                timestamp = _Timestamp.ISO_DATE_STRING
+                timestamp = Timestamp.ISO_DATE_STRING
 
             if time_unit is None:
-                time_unit = _TimeUnit.NANOSECOND
+                time_unit = TimeUnit.NANOSECOND
 
-            timestamp_nanoseconds = _time.time_ns()
+            timestamp_nanoseconds = _time().time_ns()
 
-            current = _datetime.fromtimestamp(
+            current = _datetime().datetime.fromtimestamp(
                 timestamp_nanoseconds / 1_000_000_000,
-                _TimeZoneManager().selected_time_zone,
+                _TimeZoneManager().get_singleton().selected_time_zone,
             )
 
             match time_unit:
                 case (
-                    _TimeUnit.NONE
-                    | _TimeUnit.SECOND
+                    TimeUnit.NONE
+                    | TimeUnit.SECOND
                 ):
                     fraction = ""
 
-                case _TimeUnit.MILLISECOND:
+                case TimeUnit.MILLISECOND:
                     fraction = (
                         f".{timestamp_nanoseconds // 1_000_000 % 1_000:03d}"
                     )
 
-                case _TimeUnit.MICROSECOND:
+                case TimeUnit.MICROSECOND:
                     fraction = (
                         f".{timestamp_nanoseconds // 1_000 % 1_000_000:06d}"
                     )
 
-                case _TimeUnit.NANOSECOND:
+                case TimeUnit.NANOSECOND:
                     fraction = (
                         f".{timestamp_nanoseconds % 1_000_000_000:09d}"
                     )
@@ -116,7 +143,7 @@ def _allocate():
                 case _:
                     fraction = ""
 
-            if current.tzinfo is _UTC:
+            if current.tzinfo is _datetime().UTC:
                 suffix = "Z"
             else:
                 suffix = current.strftime("%z")
@@ -125,10 +152,10 @@ def _allocate():
                     suffix = f"{suffix[:-2]}:{suffix[-2:]}"
 
             match timestamp:
-                case _Timestamp.ISO_DATE_STRING:
+                case Timestamp.ISO_DATE_STRING:
                     prefix = current.strftime("%Y-%m-%dT%H:%M:%S")
 
-                case _Timestamp.ISO_FILESYSTEM_STRING:
+                case Timestamp.ISO_FILESYSTEM_STRING:
                     prefix = current.strftime("%Y-%m-%dT%H-%M-%S")
                     suffix = suffix.replace(":", "-")
 

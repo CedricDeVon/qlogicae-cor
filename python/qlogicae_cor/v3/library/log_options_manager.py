@@ -5,6 +5,7 @@ __all__ = (
 _logging = None
 _LogOptions = None
 _LogOptionsManager = None
+_ExternalDependencyManager = None
 
 
 def _allocate():
@@ -17,6 +18,9 @@ def _allocate():
         def __init__(self):
             self.construct()
 
+        def __enter__(self):
+            return self
+
         def __exit__(self, exc_type, exc_value, traceback):
             self.shutdown()
 
@@ -28,15 +32,29 @@ def _allocate():
             return cls._singleton
 
         def construct(self):
+            global _ExternalDependencyManager
             global _logging
             global _LogOptions
 
-            import logging
+            from .external_dependency_manager import ExternalDependencyManager
 
-            from .log_options import LogOptions
+            _ExternalDependencyManager = (
+                ExternalDependencyManager().get_singleton
+            )
 
-            _logging = logging
-            _LogOptions = LogOptions
+            _logging = (
+                _ExternalDependencyManager().import_module(
+                    path="logging",
+                )
+            )
+            _LogOptions = (
+                _ExternalDependencyManager().import_module(
+                    path=".log_options",
+                    package="qlogicae_cor.v3.library",
+                    member="LogOptions",
+                    is_member_callable=True,
+                )
+            )
 
             return True
 
@@ -55,9 +73,9 @@ def _allocate():
             log_level=None,
         ):
             if log_level is None:
-                log_level = _logging.DEBUG
+                log_level = _logging().DEBUG
 
-            value = _LogOptions(
+            value = _LogOptions()(
                 is_enabled=default_log_options.is_enabled,
                 is_verbose_enabled=(
                     default_log_options.is_verbose_enabled

@@ -3,11 +3,11 @@ __all__ = (
 )
 
 _re = None
-_Path = None
-_Mapping = None
-_TextEncodingManager = None
-_PythonRuntimeUtilityManager = None
+_pathlib = None
+_collections_abc = None
 _MacrosManager = None
+_TextEncodingManager = None
+_ExternalDependencyManager = None
 
 
 def _allocate():
@@ -25,6 +25,9 @@ def _allocate():
         def __init__(self):
             self.construct()
 
+        def __enter__(self):
+            return self
+
         def __exit__(self, exc_type, exc_value, traceback):
             self.shutdown()
 
@@ -41,7 +44,7 @@ def _allocate():
 
         @selected_identifier_pattern.setter
         def selected_identifier_pattern(self, value):
-            self._selected_identifier_pattern = _re.compile(value)
+            self._selected_identifier_pattern = _re().compile(value)
 
         @property
         def selected_macros_pattern(self):
@@ -49,41 +52,50 @@ def _allocate():
 
         @selected_macros_pattern.setter
         def selected_macros_pattern(self, value):
-            self._selected_macros_pattern = _re.compile(value)
+            self._selected_macros_pattern = _re().compile(value)
 
         def construct(self):
             global _re
-            global _Path
-            global _Mapping
+            global _pathlib
+            global _collections_abc
             global _TextEncodingManager
-            global _PythonRuntimeUtilityManager
+            global _ExternalDependencyManager
 
-            import re
-            from collections.abc import Mapping
-            from pathlib import Path
+            from .external_dependency_manager import ExternalDependencyManager
 
-            from .python_runtime_utility_manager import PythonRuntimeUtilityManager
-            from .text_encoding_manager import TextEncodingManager
-
-            _re = re
-            _Path = Path
-            _Mapping = Mapping
-            _TextEncodingManager = TextEncodingManager().get_singleton
-            _PythonRuntimeUtilityManager = (
-                PythonRuntimeUtilityManager().get_singleton
+            _ExternalDependencyManager = (
+                ExternalDependencyManager().get_singleton
             )
 
-            if (
-                _PythonRuntimeUtilityManager()
-                    .is_allocated_during_object_construction
-            ):
-                _TextEncodingManager()
+            _re = (
+                _ExternalDependencyManager().import_module(
+                    path="re"
+                )
+            )
+            _pathlib = (
+                _ExternalDependencyManager().import_module(
+                    path="pathlib"
+                )
+            )
+            _collections_abc = (
+                _ExternalDependencyManager().import_module(
+                    path="collections.abc"
+                )
+            )
+            _TextEncodingManager = (
+                _ExternalDependencyManager().import_module(
+                    path=".text_encoding_manager",
+                    package="qlogicae_cor.v3.library",
+                    member="TextEncodingManager",
+                    is_member_callable=True
+                )
+            )
 
             self._selected_identifier_pattern = (
-                _re.compile(r"^[A-Za-z0-9._-]+$")
+                _re().compile(r"^[A-Za-z0-9._-]+$")
             )
             self._selected_macros_pattern = (
-                _re.compile(r"\$\{\{\s*([A-Za-z0-9._-]+)\s*\}\}")
+                _re().compile(r"\$\{\{\s*([A-Za-z0-9._-]+)\s*\}\}")
             )
 
             return True
@@ -96,10 +108,10 @@ def _allocate():
 
         def shutdown(self):
             self._selected_identifier_pattern = (
-                _re.compile(r"^[A-Za-z0-9._-]+$")
+                _re().compile(r"^[A-Za-z0-9._-]+$")
             )
             self._selected_macros_pattern = (
-                _re.compile(r"\$\{\{\s*([A-Za-z0-9._-]+)\s*\}\}")
+                _re().compile(r"\$\{\{\s*([A-Za-z0-9._-]+)\s*\}\}")
             )
 
             return True
@@ -111,7 +123,7 @@ def _allocate():
             return value
 
         def resolve_many(self, values):
-            if not isinstance(values, _Mapping):
+            if not isinstance(values, _collections_abc().Mapping):
                 raise TypeError("'values' must be a mapping")
 
             for key in values:
@@ -208,7 +220,7 @@ def _allocate():
             if not isinstance(key, str):
                 raise TypeError("'key' must be a string")
 
-            if not isinstance(values, _Mapping):
+            if not isinstance(values, _collections_abc().Mapping):
                 raise TypeError("'values' must be a mapping")
 
             if not isinstance(cache, dict):
@@ -370,20 +382,23 @@ def _allocate():
             filesystem_path,
             workspace_macros,
         ):
-            encoding = _TextEncodingManager().selected_encoding
-            root = _Path(filesystem_path)
+            root = _pathlib().Path(filesystem_path)
 
             for current_root, directories, files in root.walk(
                 top_down=False,
             ):
-                current_root = _Path(current_root)
+                current_root = _pathlib().Path(current_root)
 
                 for file_name in files:
                     current_path = current_root / file_name
 
                     try:
                         file_data = current_path.read_text(
-                            encoding=encoding,
+                            encoding=(
+                                _TextEncodingManager()
+                                    .get_singleton()
+                                    .selected_encoding
+                            ),
                         )
                     except UnicodeDecodeError:
                         pass
@@ -401,7 +416,11 @@ def _allocate():
                         if parsed_file_data != file_data:
                             current_path.write_text(
                                 parsed_file_data,
-                                encoding=encoding,
+                                encoding=(
+                                    _TextEncodingManager()
+                                        .get_singleton()
+                                        .selected_encoding
+                                ),
                             )
 
                     parsed_name = self.parse_one(
@@ -449,4 +468,4 @@ def MacrosManager():
 
     return _MacrosManager
 
-# MacrosManager
+# MacrosManager().get_singleton()

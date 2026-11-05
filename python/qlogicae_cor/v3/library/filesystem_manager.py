@@ -3,10 +3,11 @@ __all__ = (
 )
 
 _shutil = None
-_Path = None
+_pathlib = None
 _FileEntityFilesystemTreeSetupOptions = None
 _FolderEntityFilesystemTreeSetupOptions = None
 _FilesystemManager = None
+_ExternalDependencyManager = None
 
 
 def _allocate():
@@ -19,6 +20,9 @@ def _allocate():
         def __init__(self):
             self.construct()
 
+        def __enter__(self):
+            return self
+
         def __exit__(self, exc_type, exc_value, traceback):
             self.shutdown()
 
@@ -30,28 +34,43 @@ def _allocate():
             return cls._singleton
 
         def construct(self):
+            global _ExternalDependencyManager
             global _shutil
-            global _Path
+            global _pathlib
             global _FileEntityFilesystemTreeSetupOptions
             global _FolderEntityFilesystemTreeSetupOptions
 
-            import shutil
-            from pathlib import Path
+            from .external_dependency_manager import ExternalDependencyManager
 
-            from .file_entity_filesystem_tree_setup_options import (
-                FileEntityFilesystemTreeSetupOptions,
-            )
-            from .folder_entity_filesystem_tree_setup_options import (
-                FolderEntityFilesystemTreeSetupOptions,
+            _ExternalDependencyManager = (
+                ExternalDependencyManager().get_singleton
             )
 
-            _shutil = shutil
-            _Path = Path
+            _shutil = (
+                _ExternalDependencyManager().import_module(
+                    path="shutil",
+                )
+            )
+            _pathlib = (
+                _ExternalDependencyManager().import_module(
+                    path="pathlib",
+                )
+            )
             _FileEntityFilesystemTreeSetupOptions = (
-                FileEntityFilesystemTreeSetupOptions()
+                _ExternalDependencyManager().import_module(
+                    path=".file_entity_filesystem_tree_setup_options",
+                    package="qlogicae_cor.v3.library",
+                    member="FileEntityFilesystemTreeSetupOptions",
+                    is_member_callable=True,
+                )
             )
             _FolderEntityFilesystemTreeSetupOptions = (
-                FolderEntityFilesystemTreeSetupOptions()
+                _ExternalDependencyManager().import_module(
+                    path=".folder_entity_filesystem_tree_setup_options",
+                    package="qlogicae_cor.v3.library",
+                    member="FolderEntityFilesystemTreeSetupOptions",
+                    is_member_callable=True,
+                )
             )
 
             return True
@@ -66,7 +85,7 @@ def _allocate():
             return True
 
         def throw_if_filesystem_path_invalid(self, value):
-            path = _Path(value)
+            path = _pathlib().Path(value)
 
             if not path.exists():
                 raise ValueError(
@@ -76,7 +95,7 @@ def _allocate():
             return False
 
         def throw_if_file_path_invalid(self, value):
-            path = _Path(value)
+            path = _pathlib().Path(value)
 
             if not path.is_file():
                 raise ValueError(
@@ -86,7 +105,7 @@ def _allocate():
             return False
 
         def throw_if_folder_path_invalid(self, value):
-            path = _Path(value)
+            path = _pathlib().Path(value)
 
             if not path.is_dir():
                 raise ValueError(
@@ -96,24 +115,24 @@ def _allocate():
             return False
 
         def is_filesystem_path_valid(self, value):
-            result = _Path(value).exists()
+            result = _pathlib().Path(value).exists()
             return result
 
         def is_file_path_valid(self, value):
-            result = _Path(value).is_file()
+            result = _pathlib().Path(value).is_file()
             return result
 
         def is_folder_path_valid(self, value):
-            result = _Path(value).is_dir()
+            result = _pathlib().Path(value).is_dir()
             return result
 
         def clean_filesystem_path(self, path):
-            directory = _Path(path).resolve()
+            directory = _pathlib().Path(path).resolve()
 
             protected_paths = {
-                _Path(""),
-                _Path("/"),
-                _Path.home(),
+                _pathlib().Path(""),
+                _pathlib().Path("/"),
+                _pathlib().Path.home(),
             }
 
             if directory in protected_paths:
@@ -134,7 +153,7 @@ def _allocate():
                     item.unlink()
 
                 elif item.is_dir():
-                    _shutil.rmtree(item)
+                    _shutil().rmtree(item)
 
             return True
 
@@ -143,11 +162,11 @@ def _allocate():
             first_path,
             second_path,
         ):
-            fs_first_path = _Path(first_path)
-            fs_second_path = _Path(second_path)
+            fs_first_path = _pathlib().Path(first_path)
+            fs_second_path = _pathlib().Path(second_path)
 
             if fs_first_path.is_dir():
-                _shutil.copytree(
+                _shutil().copytree(
                     fs_first_path,
                     fs_second_path,
                     dirs_exist_ok=True,
@@ -159,7 +178,7 @@ def _allocate():
                     exist_ok=True,
                 )
 
-                _shutil.copy2(
+                _shutil().copy2(
                     fs_first_path,
                     fs_second_path,
                 )
@@ -174,15 +193,15 @@ def _allocate():
             first_path,
             second_path,
         ):
-            source = _Path(first_path)
-            destination = _Path(second_path)
+            source = _pathlib().Path(first_path)
+            destination = _pathlib().Path(second_path)
 
             destination.parent.mkdir(
                 parents=True,
                 exist_ok=True,
             )
 
-            _shutil.move(
+            _shutil().move(
                 str(source),
                 str(destination),
             )
@@ -194,7 +213,7 @@ def _allocate():
             parent_path,
             options,
         ):
-            path = _Path(parent_path)
+            path = _pathlib().Path(parent_path)
 
             if not path.exists():
                 raise ValueError(
@@ -211,7 +230,7 @@ def _allocate():
 
                 if isinstance(
                     entity,
-                    _FolderEntityFilesystemTreeSetupOptions,
+                    _FolderEntityFilesystemTreeSetupOptions(),
                 ):
                     entity_path.mkdir(
                         parents=True,
@@ -225,7 +244,7 @@ def _allocate():
 
                 elif isinstance(
                     entity,
-                    _FileEntityFilesystemTreeSetupOptions,
+                    _FileEntityFilesystemTreeSetupOptions(),
                 ):
                     if not entity_path.exists():
                         entity_path.write_text(
@@ -238,12 +257,12 @@ def _allocate():
             source,
             destination,
         ):
-            _Path(source).rename(destination)
+            _pathlib().Path(source).rename(destination)
 
             return True
 
         def setup_filesystem_tree_path(self, directory):
-            _Path(directory).mkdir(
+            _pathlib().Path(directory).mkdir(
                 parents=True,
                 exist_ok=True,
             )

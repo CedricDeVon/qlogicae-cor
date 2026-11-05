@@ -2,8 +2,9 @@ __all__ = (
     "EnumConversionValueEnumManager",
 )
 
-_enum_conversion_value = None
+_EnumConversionValue = None
 _EnumConversionValueEnumManager = None
+_ExternalDependencyManager = None
 
 
 def _allocate():
@@ -16,6 +17,9 @@ def _allocate():
         def __init__(self):
             self.construct()
 
+        def __enter__(self):
+            return self
+
         def __exit__(self, exc_type, exc_value, traceback):
             self.shutdown()
 
@@ -27,14 +31,25 @@ def _allocate():
             return cls._singleton
 
         def construct(self):
-            global _enum_conversion_value
+            global _ExternalDependencyManager
+            global _EnumConversionValue
 
-            from .enum_conversion_value import EnumConversionValue
+            from .external_dependency_manager import ExternalDependencyManager
 
-            _enum_conversion_value = EnumConversionValue()
+            _ExternalDependencyManager = (
+                ExternalDependencyManager().get_singleton
+            )
+
+            _EnumConversionValue = (
+                _ExternalDependencyManager().import_module(
+                    path=".enum_conversion_value",
+                    package="qlogicae_cor.v3.library",
+                    member="EnumConversionValue",
+                    is_member_callable=True,
+                )
+            )
 
             return True
-
         def setup(self, **kwargs):
             if not kwargs:
                 return False
@@ -49,40 +64,44 @@ def _allocate():
             input_type,
             output_type=None,
         ):
+            EnumConversionValue = (
+                _EnumConversionValue()
+            )
+
             if output_type is None:
-                output_type = _enum_conversion_value.STRING
+                output_type = EnumConversionValue.STRING
 
             match output_type:
-                case _enum_conversion_value.STRING:
+                case EnumConversionValue.STRING:
                     match input_type:
-                        case _enum_conversion_value.STRING:
+                        case EnumConversionValue.STRING:
                             return "string"
 
-                        case _enum_conversion_value.ENUM:
+                        case EnumConversionValue.ENUM:
                             return "enum"
 
-                        case _enum_conversion_value.CUSTOM:
+                        case EnumConversionValue.CUSTOM:
                             return "custom"
 
                         case _:
                             return "none"
 
-                case _enum_conversion_value.ENUM:
+                case EnumConversionValue.ENUM:
                     match str(input_type).lower():
                         case "string":
-                            return _enum_conversion_value.STRING
+                            return EnumConversionValue.STRING
 
                         case "none":
-                            return _enum_conversion_value.ENUM
+                            return EnumConversionValue.ENUM
 
                         case "custom":
-                            return _enum_conversion_value.CUSTOM
+                            return EnumConversionValue.CUSTOM
 
                         case _:
-                            return _enum_conversion_value.NONE
+                            return EnumConversionValue.NONE
 
                 case _:
-                    return _enum_conversion_value.NONE
+                    return EnumConversionValue.NONE
 
     _EnumConversionValueEnumManager = __EnumConversionValueEnumManager
     _allocate = lambda: None

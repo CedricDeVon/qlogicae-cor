@@ -6,7 +6,7 @@ _sys = None
 _argparse = None
 _CliPluginManager = None
 _CliCommandManager = None
-_PythonRuntimeUtilityManager = None
+_ExternalDependencyManager = None
 
 
 def _allocate():
@@ -26,6 +26,9 @@ def _allocate():
         def __init__(self):
             self.construct()
 
+        def __enter__(self):
+            return self
+
         def __exit__(self, exc_type, exc_value, traceback):
             self.shutdown()
 
@@ -40,26 +43,16 @@ def _allocate():
             global _sys
             global _argparse
             global _CliPluginManager
-            global _PythonRuntimeUtilityManager
+            global _ExternalDependencyManager
 
             import argparse
             import sys
 
             from .cli_plugin_manager import CliPluginManager
-            from .python_runtime_utility_manager import PythonRuntimeUtilityManager
 
             _sys = sys
             _argparse = argparse
             _CliPluginManager = CliPluginManager().get_singleton
-            _PythonRuntimeUtilityManager = (
-                PythonRuntimeUtilityManager().get_singleton
-            )
-
-            if (
-                _PythonRuntimeUtilityManager()
-                    .is_allocated_during_object_construction
-            ):
-                _CliPluginManager()
 
             self._parser = None
             self._commands = None

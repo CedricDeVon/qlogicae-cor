@@ -2,10 +2,10 @@ __all__ = (
     "TimerManager",
 )
 
-_PythonRuntimeUtilityManager = None
 _TimeManager = None
 _TimeUnit = None
 _TimerManager = None
+_ExternalDependencyManager = None
 
 
 def _allocate():
@@ -22,6 +22,9 @@ def _allocate():
 
         def __init__(self):
             self.construct()
+
+        def __enter__(self):
+            return self
 
         def __exit__(self, exc_type, exc_value, traceback):
             self.shutdown()
@@ -42,22 +45,32 @@ def _allocate():
             return self._stop_timestamp
 
         def construct(self):
-            global _PythonRuntimeUtilityManager
             global _TimeManager
             global _TimeUnit
+            global _ExternalDependencyManager
 
-            from .python_runtime_utility_manager import PythonRuntimeUtilityManager
-            from .time_manager import TimeManager
-            from .time_unit import TimeUnit
+            from .external_dependency_manager import ExternalDependencyManager
 
-            _PythonRuntimeUtilityManager = (
-                PythonRuntimeUtilityManager().get_singleton
+            _ExternalDependencyManager = (
+                ExternalDependencyManager().get_singleton
             )
-            _TimeManager = TimeManager().get_singleton
-            _TimeUnit = TimeUnit()
 
-            if _PythonRuntimeUtilityManager().is_allocated_during_object_construction:
-                _TimeManager()
+            _TimeManager = (
+                _ExternalDependencyManager().import_module(
+                    path=".time_manager",
+                    package="qlogicae_cor.v3.library",
+                    member="TimeManager",
+                    is_member_callable=True,
+                )
+            )
+            _TimeUnit = (
+                _ExternalDependencyManager().import_module(
+                    path=".time_unit",
+                    package="qlogicae_cor.v3.library",
+                    member="TimeUnit",
+                    is_member_callable=True,
+                )
+            )
 
             self._start_timestamp = 0
             self._stop_timestamp = 0
@@ -74,12 +87,16 @@ def _allocate():
             return True
 
         def start_time(self):
-            self._start_timestamp = _TimeManager().current_nanosecond
+            self._start_timestamp = (
+                _TimeManager().get_singleton().current_nanosecond
+            )
 
             return True
 
         def stop_time(self):
-            self._stop_timestamp = _TimeManager().current_nanosecond
+            self._stop_timestamp = (
+                _TimeManager().get_singleton().current_nanosecond
+            )
 
             return True
 
@@ -90,27 +107,35 @@ def _allocate():
             return True
 
         def reset_time(self):
-            self._start_timestamp = _TimeManager().current_nanosecond
+            self._start_timestamp = (
+                _TimeManager().get_singleton().current_nanosecond
+            )
             self._stop_timestamp = 0
 
             return True
 
         def calculate_elapsed_time(self, time_unit=None):
             if time_unit is None:
-                time_unit = _TimeUnit.SECOND
+                time_unit = _TimeUnit().SECOND
 
-            value = _TimeManager().convert_time_unit(
-                _TimeManager().current_nanosecond - self._start_timestamp,
-                output_time_unit=time_unit,
+            TimeManager = (
+                _TimeManager().get_singleton()
+            )
+
+            value = (
+                TimeManager.convert_time_unit(
+                    TimeManager.current_nanosecond - self._start_timestamp,
+                    output_time_unit=time_unit,
+                )
             )
 
             return value
 
         def calculate_duration_time(self, time_unit=None):
             if time_unit is None:
-                time_unit = _TimeUnit.SECOND
+                time_unit = _TimeUnit().SECOND
 
-            value = _TimeManager().convert_time_unit(
+            value = _TimeManager().get_singleton().convert_time_unit(
                 self._stop_timestamp - self._start_timestamp,
                 output_time_unit=time_unit,
             )

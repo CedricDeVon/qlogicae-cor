@@ -4,8 +4,9 @@ __all__ = (
 
 _os = None
 _platform = None
-_path = None
+_pathlib = None
 _SystemManager = None
+_ExternalDependencyManager = None
 
 
 def _allocate():
@@ -21,6 +22,9 @@ def _allocate():
 
         def __init__(self):
             self.construct()
+
+        def __enter__(self):
+            return self
 
         def __exit__(self, exc_type, exc_value, traceback):
             self.shutdown()
@@ -38,11 +42,11 @@ def _allocate():
 
         @property
         def current_executing_script_filesystem_path(self):
-            return f"{_path(__file__).resolve()}"
+            return f"{_pathlib().Path(__file__).resolve()}"
 
         @property
         def current_executing_console_filesystem_path(self):
-            return f"{_path.cwd().resolve()}"
+            return f"{_pathlib().Path.cwd().resolve()}"
 
         @current_executing_console_filesystem_path.setter
         def current_executing_console_filesystem_path(
@@ -50,7 +54,7 @@ def _allocate():
             filesystem_path,
         ):
             path = (
-                _path(filesystem_path)
+                _pathlib().Path(filesystem_path)
                 .expanduser()
                 .resolve()
             )
@@ -65,31 +69,45 @@ def _allocate():
                     f"'{path}' is not a directory",
                 )
 
-            _os.chdir(path)
+            _os().chdir(path)
 
         @property
         def operating_system_name(self):
-            return _platform.system()
+            return _platform().system()
 
         @property
         def operating_system_architecture(self):
-            return _platform.machine()
+            return _platform().machine()
 
         def construct(self):
             global _os
             global _platform
-            global _path
+            global _pathlib
 
-            import os
-            import pathlib
-            import platform
+            from .external_dependency_manager import ExternalDependencyManager
 
-            _os = os
-            _platform = platform
-            _path = pathlib.Path
+            _ExternalDependencyManager = (
+                ExternalDependencyManager().get_singleton
+            )
+
+            _os = (
+                _ExternalDependencyManager().import_module(
+                    path="os",
+                )
+            )
+            _platform = (
+                _ExternalDependencyManager().import_module(
+                    path="platform",
+                )
+            )
+            _pathlib = (
+                _ExternalDependencyManager().import_module(
+                    path="pathlib",
+                )
+            )
 
             self._original_executing_console_filesystem_path = (
-                f"{_path.cwd().resolve()}"
+                f"{_pathlib().Path.cwd().resolve()}"
             )
 
             return True
@@ -102,7 +120,7 @@ def _allocate():
 
         def shutdown(self):
             self._original_executing_console_filesystem_path = (
-                f"{_path.cwd().resolve()}"
+                f"{_pathlib().Path.cwd().resolve()}"
             )
 
             return True

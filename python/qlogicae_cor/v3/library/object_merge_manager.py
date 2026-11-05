@@ -2,8 +2,9 @@ __all__ = (
     "ObjectMergeManager",
 )
 
-_deepcopy = None
+_copy = None
 _ObjectMergeManager = None
+_ExternalDependencyManager = None
 
 
 def _allocate():
@@ -16,6 +17,9 @@ def _allocate():
         def __init__(self):
             self.construct()
 
+        def __enter__(self):
+            return self
+
         def __exit__(self, exc_type, exc_value, traceback):
             self.shutdown()
 
@@ -27,11 +31,20 @@ def _allocate():
             return cls._singleton
 
         def construct(self):
-            global _deepcopy
+            global _copy
+            global _ExternalDependencyManager
 
-            from copy import deepcopy
+            from .external_dependency_manager import ExternalDependencyManager
 
-            _deepcopy = deepcopy
+            _ExternalDependencyManager = (
+                ExternalDependencyManager().get_singleton
+            )
+            _copy = (
+                _ExternalDependencyManager()
+                    .import_module(
+                        path="copy"
+                    )
+            )
 
             return True
 
@@ -50,13 +63,13 @@ def _allocate():
             right,
         ):
             if left is None:
-                return _deepcopy(right)
+                return _copy().deepcopy(right)
 
             if right is None:
-                return _deepcopy(left)
+                return _copy().deepcopy(left)
 
             if isinstance(left, dict) and isinstance(right, dict):
-                result = _deepcopy(left)
+                result = _copy().deepcopy(left)
 
                 for key, value in right.items():
                     if key in result:
@@ -65,14 +78,14 @@ def _allocate():
                             value,
                         )
                     else:
-                        result[key] = _deepcopy(value)
+                        result[key] = _copy().deepcopy(value)
 
                 return result
 
             if isinstance(left, list) and isinstance(right, list):
-                return _deepcopy(left) + _deepcopy(right)
+                return _copy().deepcopy(left) + _copy().deepcopy(right)
 
-            return _deepcopy(right)
+            return _copy().deepcopy(right)
 
         def deep_merge_fragments(
             self,
@@ -80,13 +93,13 @@ def _allocate():
             right,
         ):
             if left is None:
-                return _deepcopy(right)
+                return _copy().deepcopy(right)
 
             if right is None:
-                return _deepcopy(left)
+                return _copy().deepcopy(left)
 
             if isinstance(left, dict) and isinstance(right, dict):
-                result = _deepcopy(left)
+                result = _copy().deepcopy(left)
 
                 for key, value in right.items():
                     if key in result:
@@ -95,14 +108,15 @@ def _allocate():
                             value,
                         )
                     else:
-                        result[key] = _deepcopy(value)
+                        result[key] = _copy().deepcopy(value)
 
                 return result
 
             if isinstance(left, list) and isinstance(right, list):
-                return _deepcopy(right)
+                return _copy().deepcopy(right)
 
-            return _deepcopy(right)
+            return _copy().deepcopy(right)
+
 
     _ObjectMergeManager = __ObjectMergeManager
     _allocate = lambda: None

@@ -5,7 +5,7 @@ __all__ = (
 _json = None
 _JsonManager = None
 _JsonTextManager = None
-_PythonRuntimeUtilityManager = None
+_ExternalDependencyManager = None
 
 
 def _allocate():
@@ -18,6 +18,9 @@ def _allocate():
         def __init__(self):
             self.construct()
 
+        def __enter__(self):
+            return self
+
         def __exit__(self, exc_type, exc_value, traceback):
             self.shutdown()
 
@@ -29,23 +32,29 @@ def _allocate():
             return cls._singleton
 
         def construct(self):
+            global _ExternalDependencyManager
             global _json
             global _JsonManager
-            global _PythonRuntimeUtilityManager
 
-            import json
+            from .external_dependency_manager import ExternalDependencyManager
 
-            from .json_manager import JsonManager
-            from .python_runtime_utility_manager import PythonRuntimeUtilityManager
-
-            _json = json
-            _JsonManager = JsonManager().get_singleton
-            _PythonRuntimeUtilityManager = (
-                PythonRuntimeUtilityManager().get_singleton
+            _ExternalDependencyManager = (
+                ExternalDependencyManager().get_singleton
             )
 
-            if _PythonRuntimeUtilityManager().is_allocated_during_object_construction:
-                _JsonManager()
+            _json = (
+                _ExternalDependencyManager().import_module(
+                    path="json",
+                )
+            )
+            _JsonManager = (
+                _ExternalDependencyManager().import_module(
+                    path=".json_manager",
+                    package="qlogicae_cor.v3.library",
+                    member="JsonManager",
+                    is_member_callable=True,
+                )
+            )
 
             return True
 
@@ -59,18 +68,18 @@ def _allocate():
             return True
 
         def is_valid(self, value):
-            _json.loads(value)
+            _json().loads(value)
 
             return True
 
         def convert_to_object(self, value):
-            return _json.loads(value)
+            return _json().loads(value)
 
         def convert_to_string(self, value):
-            result = _json.dumps(
+            result = _json().dumps(
                 value,
-                indent=_JsonManager().indent_count,
-                ensure_ascii=_JsonManager().is_ascii_format_enabled,
+                indent=_JsonManager().get_singleton().indent_count,
+                ensure_ascii=_JsonManager().get_singleton().is_ascii_format_enabled,
             )
 
             return result

@@ -3,11 +3,10 @@ __all__ = (
 )
 
 _datetime = None
-_UTC = None
 _EnumConversionValue = None
 _TimeZone = None
 _TimeZoneEnumManager = None
-
+_ExternalDependencyManager = None
 
 def _allocate():
     global _allocate
@@ -18,6 +17,9 @@ def _allocate():
 
         def __init__(self):
             self.construct()
+
+        def __enter__(self):
+            return self
 
         def __exit__(self, exc_type, exc_value, traceback):
             self.shutdown()
@@ -31,19 +33,36 @@ def _allocate():
 
         def construct(self):
             global _datetime
-            global _UTC
             global _EnumConversionValue
             global _TimeZone
 
-            from datetime import UTC, datetime
+            from .external_dependency_manager import ExternalDependencyManager
 
-            from .enum_conversion_value import EnumConversionValue
-            from .time_zone import TimeZone
+            _ExternalDependencyManager = (
+                ExternalDependencyManager().get_singleton
+            )
 
-            _datetime = datetime
-            _UTC = UTC
-            _EnumConversionValue = EnumConversionValue()
-            _TimeZone = TimeZone()
+            _datetime = (
+                _ExternalDependencyManager().import_module(
+                    path="datetime",
+                )
+            )
+            _EnumConversionValue = (
+                _ExternalDependencyManager().import_module(
+                    path=".enum_conversion_value",
+                    package="qlogicae_cor.v3.library",
+                    member="EnumConversionValue",
+                    is_member_callable=True,
+                )
+            )
+            _TimeZone = (
+                _ExternalDependencyManager().import_module(
+                    path=".time_zone",
+                    package="qlogicae_cor.v3.library",
+                    member="TimeZone",
+                    is_member_callable=True,
+                )
+            )
 
             return True
 
@@ -61,54 +80,61 @@ def _allocate():
             input_type,
             output_type=None,
         ):
+            TimeZone = (
+                _TimeZone()
+            )
+            EnumConversionValue = (
+                _EnumConversionValue()
+            )
+
             if output_type is None:
-                output_type = _EnumConversionValue.STRING
+                output_type = EnumConversionValue.STRING
 
             match output_type:
-                case _EnumConversionValue.STRING:
+                case EnumConversionValue.STRING:
                     match input_type:
-                        case _TimeZone.LOCAL:
+                        case TimeZone.LOCAL:
                             return "local"
 
-                        case _TimeZone.UTC:
+                        case TimeZone.UTC:
                             return "utc"
 
-                        case _TimeZone.CUSTOM:
+                        case TimeZone.CUSTOM:
                             return "custom"
 
                         case _:
                             return "local"
 
-                case _EnumConversionValue.ENUM:
+                case EnumConversionValue.ENUM:
                     match str(input_type).lower():
                         case "local":
-                            return _TimeZone.LOCAL
+                            return TimeZone.LOCAL
 
                         case "utc":
-                            return _TimeZone.UTC
+                            return TimeZone.UTC
 
                         case "custom":
-                            return _TimeZone.CUSTOM
+                            return TimeZone.CUSTOM
 
                         case _:
-                            return _TimeZone.LOCAL
+                            return TimeZone.LOCAL
 
-                case _EnumConversionValue.CUSTOM:
+                case EnumConversionValue.CUSTOM:
                     match str(input_type).lower():
                         case "local":
-                            return _datetime.now().astimezone().tzinfo
+                            return _datetime().datetime.now().astimezone().tzinfo
 
                         case "utc":
-                            return _UTC
+                            return _datetime().UTC
 
                         case "custom":
-                            return _datetime.now().astimezone().tzinfo
+                            return _datetime().datetime.now().astimezone().tzinfo
 
                         case _:
-                            return _datetime.now().astimezone().tzinfo
+                            return _datetime().datetime.now().astimezone().tzinfo
 
                 case _:
-                    return _EnumConversionValue.NONE
+                    return EnumConversionValue.NONE
 
     _TimeZoneEnumManager = __TimeZoneEnumManager
     _allocate = lambda: None

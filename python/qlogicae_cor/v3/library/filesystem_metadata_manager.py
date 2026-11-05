@@ -2,9 +2,10 @@ __all__ = (
     "FilesystemMetadataManager",
 )
 
-_Path = None
+_pathlib = None
 _FilesystemMetadata = None
 _FilesystemMetadataManager = None
+_ExternalDependencyManager = None
 
 
 def _allocate():
@@ -17,6 +18,9 @@ def _allocate():
         def __init__(self):
             self.construct()
 
+        def __enter__(self):
+            return self
+
         def __exit__(self, exc_type, exc_value, traceback):
             self.shutdown()
 
@@ -28,15 +32,29 @@ def _allocate():
             return cls._singleton
 
         def construct(self):
-            global _Path
+            global _ExternalDependencyManager
+            global _pathlib
             global _FilesystemMetadata
 
-            from pathlib import Path
+            from .external_dependency_manager import ExternalDependencyManager
 
-            from .filesystem_metadata import FilesystemMetadata
+            _ExternalDependencyManager = (
+                ExternalDependencyManager().get_singleton
+            )
 
-            _Path = Path
-            _FilesystemMetadata = FilesystemMetadata
+            _pathlib = (
+                _ExternalDependencyManager().import_module(
+                    path="pathlib",
+                )
+            )
+            _FilesystemMetadata = (
+                _ExternalDependencyManager().import_module(
+                    path=".filesystem_metadata",
+                    package="qlogicae_cor.v3.library",
+                    member="FilesystemMetadata",
+                    is_member_callable=True
+                )
+            )
 
             return True
 
@@ -53,9 +71,9 @@ def _allocate():
             self,
             filesystem_path,
         ):
-            stat = _Path(filesystem_path).stat()
+            stat = _pathlib().Path(filesystem_path).stat()
 
-            return _FilesystemMetadata(
+            return _FilesystemMetadata()(
                 mode=stat.st_mode,
                 inode=stat.st_ino,
                 device=stat.st_dev,

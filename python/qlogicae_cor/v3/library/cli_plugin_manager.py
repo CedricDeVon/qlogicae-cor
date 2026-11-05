@@ -4,7 +4,7 @@ __all__ = (
 
 _PluginManager = None
 _CliPluginManager = None
-_PythonRuntimeUtilityManager = None
+_ExternalDependencyManager = None
 
 
 def _allocate():
@@ -19,6 +19,9 @@ def _allocate():
         def __init__(self):
             self.construct()
 
+        def __enter__(self):
+            return self
+
         def __exit__(self, exc_type, exc_value, traceback):
             self.shutdown()
 
@@ -31,21 +34,11 @@ def _allocate():
 
         def construct(self):
             global _PluginManager
-            global _PythonRuntimeUtilityManager
+            global _ExternalDependencyManager
 
             from .plugin_manager import PluginManager
-            from .python_runtime_utility_manager import PythonRuntimeUtilityManager
 
             _PluginManager = PluginManager().get_singleton
-            _PythonRuntimeUtilityManager = (
-                PythonRuntimeUtilityManager().get_singleton
-            )
-
-            if (
-                _PythonRuntimeUtilityManager()
-                    .is_allocated_during_object_construction
-            ):
-                _PluginManager()
 
             return True
 

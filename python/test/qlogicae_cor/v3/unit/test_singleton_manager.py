@@ -66,6 +66,22 @@ def test_get_singleton_returns_same_instance():
     assert instance1 is instance2
 
 
+def test_setup_failed():
+    result = SingletonManager().setup()
+    assert result is False
+
+
+def test_setup_success():
+    result = SingletonManager().setup(
+        name="Hello",
+    )
+    assert result is True
+
+def test_shutdown_success():
+    result = SingletonManager().shutdown()
+    assert result is True
+
+
 def test_get_singleton_different_constructor():
     instance1 = SingletonManager().get_singleton(
         DummyClass,

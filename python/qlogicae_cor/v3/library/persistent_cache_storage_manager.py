@@ -2,9 +2,10 @@ __all__ = (
     "PersistentCacheStorageManager",
 )
 
-_dbm_gnu = None
+_dbm = None
 _pickle = None
 _time = None
+_ExternalDependencyManager = None
 _PersistentCacheStorageManager = None
 
 
@@ -31,6 +32,9 @@ def _allocate():
         def __init__(self):
             self.construct()
 
+        def __enter__(self):
+            return self
+
         def __exit__(self, exc_type, exc_value, traceback):
             self.shutdown()
 
@@ -42,17 +46,35 @@ def _allocate():
             return cls._singleton
 
         def construct(self):
-            global _dbm_gnu
+            global _dbm
             global _pickle
             global _time
+            global _ExternalDependencyManager
 
-            import pickle  # nosec B403
-            import time  # nosec B110
-            from dbm import gnu
+            from .external_dependency_manager import ExternalDependencyManager
 
-            _dbm_gnu = gnu
-            _pickle = pickle
-            _time = time
+            _ExternalDependencyManager = (
+                ExternalDependencyManager().get_singleton
+            )
+
+            _dbm = (
+                _ExternalDependencyManager()
+                    .import_module(
+                        path="dbm"
+                    )
+            )
+            _pickle = ( # nosec B403
+                _ExternalDependencyManager()
+                    .import_module(
+                        path="pickle"
+                    )
+            )
+            _time = ( # nosec B110
+                _ExternalDependencyManager()
+                    .import_module(
+                        path="time"
+                    )
+            )
 
             self._database = None
             self._database_path = "cache.db"
@@ -60,7 +82,7 @@ def _allocate():
             self._lifespan_in_seconds = 0.0
             self._file_mode = 0o600
             self._key_encoding = "utf-8"
-            self._pickle_protocol = _pickle.HIGHEST_PROTOCOL
+            self._pickle_protocol = _pickle().HIGHEST_PROTOCOL
             self._auto_remove_expired = True
             self._auto_remove_invalid = True
             self._sync_on_write = False
@@ -93,8 +115,8 @@ def _allocate():
             ) or "utf-8"
             self._pickle_protocol = kwargs.get(
                 "pickle_protocol",
-                _pickle.HIGHEST_PROTOCOL
-            ) or _pickle.HIGHEST_PROTOCOL
+                _pickle().HIGHEST_PROTOCOL
+            ) or _pickle().HIGHEST_PROTOCOL
             self._auto_remove_expired = kwargs.get(
                 "auto_remove_expired",
                 True
@@ -227,7 +249,7 @@ def _allocate():
             if not (
                 0
                 <= value
-                <= _pickle.HIGHEST_PROTOCOL
+                <= _pickle().HIGHEST_PROTOCOL
             ):
                 raise ValueError(
                     "'pickle_protocol' is outside the supported range",
@@ -295,7 +317,7 @@ def _allocate():
             if self._database is not None:
                 return False
 
-            self._database = _dbm_gnu.open(
+            self._database = _dbm().gnu.open(
                 self.database_path,
                 "c" if self.create_missing else "r",
                 self.file_mode,
@@ -336,14 +358,14 @@ def _allocate():
             )
 
         def _serialize(self, value):
-            return _pickle.dumps(
+            return _pickle().dumps(
                 value,
                 protocol=self.pickle_protocol,
             )
 
         @staticmethod
         def _deserialize(value):
-            return _pickle.loads(value)
+            return _pickle().loads(value)
 
         def _is_expired(self, created_at, current_time):
             if self.lifespan_in_seconds <= 0:
@@ -411,7 +433,7 @@ def _allocate():
 
         def is_keys_found(self, key_paths):
             database = self._require_database()
-            current_time = _time.time()
+            current_time = _time().time()
             result = {}
 
             for key_path in key_paths:
@@ -437,7 +459,7 @@ def _allocate():
 
         def is_key_expired(self, key_paths):
             database = self._require_database()
-            current_time = _time.time()
+            current_time = _time().time()
             result = {}
 
             for key_path in key_paths:
@@ -495,7 +517,7 @@ def _allocate():
 
         def get_many_values(self, key_paths):
             database = self._require_database()
-            current_time = _time.time()
+            current_time = _time().time()
             result = {}
 
             for key_path in key_paths:
@@ -523,7 +545,7 @@ def _allocate():
 
         def set_many_values(self, values):
             database = self._require_database()
-            created_at = _time.time()
+            created_at = _time().time()
 
             for key_path, value in values.items():
                 encoded_key = self._encode_key(
@@ -585,7 +607,7 @@ def _allocate():
 
         def remove_expired_values(self):
             database = self._require_database()
-            current_time = _time.time()
+            current_time = _time().time()
             removed = 0
 
             for encoded_key in tuple(database.keys()):
@@ -666,7 +688,7 @@ def _allocate():
 
         def display_all_items(self):
             database = self._require_database()
-            current_time = _time.time()
+            current_time = _time().time()
 
             for encoded_key in tuple(database.keys()):
                 key_path = self._decode_key(

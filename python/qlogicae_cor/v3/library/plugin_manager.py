@@ -2,13 +2,10 @@ __all__ = (
     "PluginManager",
 )
 
-_sys = None
-_pathlib = None
-_importlib_util = None
 _PluginManager = None
 _ObjectMergeManager = None
 _PythonModuleManager = None
-_PythonRuntimeUtilityManager = None
+_ExternalDependencyManager = None
 
 
 def _allocate():
@@ -20,6 +17,9 @@ def _allocate():
 
         def __init__(self):
             self.construct()
+
+        def __enter__(self):
+            return self
 
         def __exit__(self, exc_type, exc_value, traceback):
             self.shutdown()
@@ -40,36 +40,33 @@ def _allocate():
             self._collection = value
 
         def construct(self):
-            global _sys
-            global _pathlib
-            global _importlib_util
+            global _ExternalDependencyManager
             global _ObjectMergeManager
             global _PythonModuleManager
-            global _PythonRuntimeUtilityManager
 
-            import importlib.util
-            import pathlib
-            import sys
+            from .external_dependency_manager import ExternalDependencyManager
 
-            from .object_merge_manager import ObjectMergeManager
-            from .python_module_manager import PythonModuleManager
-            from .python_runtime_utility_manager import PythonRuntimeUtilityManager
-
-            _sys = sys
-            _pathlib = pathlib
-            _importlib_util = importlib.util
-            _ObjectMergeManager = ObjectMergeManager().get_singleton
-            _PythonModuleManager = PythonModuleManager().get_singleton
-            _PythonRuntimeUtilityManager = (
-                PythonRuntimeUtilityManager().get_singleton
+            _ExternalDependencyManager = (
+                ExternalDependencyManager().get_singleton
             )
 
-            if (
-                _PythonRuntimeUtilityManager()
-                    .is_allocated_during_object_construction
-            ):
-                _ObjectMergeManager()
-                _PythonModuleManager()
+            _ObjectMergeManager = (
+                _ExternalDependencyManager().import_module(
+                    path=".object_merge_manager",
+                    package="qlogicae_cor.v3.library",
+                    member="ObjectMergeManager",
+                    is_member_callable=True,
+                )
+            )
+
+            _PythonModuleManager = (
+                _ExternalDependencyManager().import_module(
+                    path=".python_module_manager",
+                    package="qlogicae_cor.v3.library",
+                    member="PythonModuleManager",
+                    is_member_callable=True,
+                )
+            )
 
             self._collection = {}
 
@@ -124,6 +121,7 @@ def _allocate():
 
             imported_modules = (
                 _PythonModuleManager()
+                    .get_singleton()
                     .read_import_modules(
                         **options
                     )
@@ -158,7 +156,7 @@ def _allocate():
                 return {}
 
             object_merge_manager = (
-                _ObjectMergeManager()
+                _ObjectMergeManager().get_singleton()
             )
             module_exports = {}
             for raw_module_export in raw_module_exports:

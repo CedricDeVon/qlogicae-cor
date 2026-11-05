@@ -3,9 +3,9 @@ __all__ = (
 )
 
 _pathlib = None
-_PythonRuntimeUtilityManager = None
 _TextEncodingManager = None
 _TextFileIoManager = None
+_ExternalDependencyManager = None
 
 
 def _allocate():
@@ -20,6 +20,9 @@ def _allocate():
         def __init__(self):
             self.construct()
 
+        def __enter__(self):
+            return self
+
         def __exit__(self, exc_type, exc_value, traceback):
             self.shutdown()
 
@@ -31,7 +34,7 @@ def _allocate():
             return cls._singleton
 
         def read_file(self, file_path):
-            path = _pathlib.Path(file_path)
+            path = _pathlib().Path(file_path)
 
             output_data = ""
 
@@ -45,22 +48,28 @@ def _allocate():
 
         def construct(self):
             global _pathlib
-            global _PythonRuntimeUtilityManager
             global _TextEncodingManager
+            global _ExternalDependencyManager
 
-            import pathlib
+            from .external_dependency_manager import ExternalDependencyManager
 
-            from .python_runtime_utility_manager import PythonRuntimeUtilityManager
-            from .text_encoding_manager import TextEncodingManager
-
-            _pathlib = pathlib
-            _PythonRuntimeUtilityManager = (
-                PythonRuntimeUtilityManager().get_singleton
+            _ExternalDependencyManager = (
+                ExternalDependencyManager().get_singleton
             )
-            _TextEncodingManager = TextEncodingManager().get_singleton
 
-            if _PythonRuntimeUtilityManager().is_allocated_during_object_construction:
-                _TextEncodingManager()
+            _pathlib = (
+                _ExternalDependencyManager().import_module(
+                    path="pathlib",
+                )
+            )
+            _TextEncodingManager = (
+                _ExternalDependencyManager().import_module(
+                    path=".text_encoding_manager",
+                    package="qlogicae_cor.v3.library",
+                    member="TextEncodingManager",
+                    is_member_callable=True,
+                )
+            )
 
             return True
 
@@ -74,7 +83,7 @@ def _allocate():
             return True
 
         def write_file(self, file_path, data):
-            path = _pathlib.Path(file_path)
+            path = _pathlib().Path(file_path)
 
             path.parent.mkdir(
                 parents=True,

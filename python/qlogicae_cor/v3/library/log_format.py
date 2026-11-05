@@ -3,37 +3,44 @@ __all__ = (
 )
 
 _logging = None
-_PythonRuntimeUtilityManager = None
 _TimestampManager = None
 _LogFormat = None
+_ExternalDependencyManager = None
 
 
 def _allocate():
     global _allocate
     global _logging
-    global _PythonRuntimeUtilityManager
-    global _TimestampManager
     global _LogFormat
+    global _TimestampManager
+    global _ExternalDependencyManager
 
     import logging
 
-    from .python_runtime_utility_manager import PythonRuntimeUtilityManager
-    from .timestamp_manager import TimestampManager
+    from .external_dependency_manager import ExternalDependencyManager
 
     _logging = logging
-    _PythonRuntimeUtilityManager = PythonRuntimeUtilityManager()
-    _TimestampManager = TimestampManager().get_singleton
+    _ExternalDependencyManager = (
+        ExternalDependencyManager().get_singleton
+    )
+    _TimestampManager = (
+        _ExternalDependencyManager().import_module(
+            path=".timestamp_manager",
+            package="qlogicae_cor.v3.library",
+            member="TimestampManager",
+            is_member_callable=True,
+        )
+    )
 
     class __LogFormat(_logging.Formatter):
         def __init__(self):
             super().__init__()
 
-            if _PythonRuntimeUtilityManager.is_allocated_during_object_construction:
-                _TimestampManager()
-
         def format(self, record):
             timestamp = (
-                _TimestampManager().generate_current_timestamp()
+                _TimestampManager()
+                    .get_singleton()
+                    .generate_current_timestamp()
             )
 
             return (

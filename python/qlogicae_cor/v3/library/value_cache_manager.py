@@ -3,11 +3,10 @@ __all__ = (
 )
 
 _FilesystemManager = None
-_PythonRuntimeUtilityManager = None
 _TargetCacheValue = None
 _ValueCacheStorageManager = None
 _ValueCacheManager = None
-
+_ExternalDependencyManager = None
 
 def _allocate():
     global _allocate
@@ -18,6 +17,9 @@ def _allocate():
 
         def __init__(self):
             self.construct()
+
+        def __enter__(self):
+            return self
 
         def __exit__(self, exc_type, exc_value, traceback):
             self.shutdown()
@@ -31,25 +33,40 @@ def _allocate():
 
         def construct(self):
             global _FilesystemManager
-            global _PythonRuntimeUtilityManager
             global _TargetCacheValue
             global _ValueCacheStorageManager
+            global _ExternalDependencyManager
 
-            from .filesystem_manager import FilesystemManager
-            from .python_runtime_utility_manager import PythonRuntimeUtilityManager
-            from .target_cache_value import TargetCacheValue
-            from .value_cache_storage_manager import ValueCacheStorageManager
+            from .external_dependency_manager import ExternalDependencyManager
 
-            _FilesystemManager = FilesystemManager().get_singleton
-            _PythonRuntimeUtilityManager = (
-                PythonRuntimeUtilityManager().get_singleton
+            _ExternalDependencyManager = (
+                ExternalDependencyManager().get_singleton
             )
-            _TargetCacheValue = TargetCacheValue()
-            _ValueCacheStorageManager = ValueCacheStorageManager().get_singleton
 
-            if _PythonRuntimeUtilityManager().is_allocated_during_object_construction:
-                _FilesystemManager()
-                _ValueCacheStorageManager()
+            _FilesystemManager = (
+                _ExternalDependencyManager().import_module(
+                    path=".filesystem_manager",
+                    package="qlogicae_cor.v3.library",
+                    memger="FilesystemManager",
+                    is_member_callable=True,
+                )
+            )
+            _TargetCacheValue = (
+                _ExternalDependencyManager().import_module(
+                    path=".target_cache_value",
+                    package="qlogicae_cor.v3.library",
+                    memger="TargetCacheValue",
+                    is_member_callable=True,
+                )
+            )
+            _ValueCacheStorageManager = (
+                _ExternalDependencyManager().import_module(
+                    path=".value_cache_storage_manager",
+                    package="qlogicae_cor.v3.library",
+                    memger="ValueCacheStorageManager",
+                    is_member_callable=True,
+                )
+            )
 
             return True
 
@@ -57,14 +74,14 @@ def _allocate():
             if not kwargs:
                 return False
 
-            _ValueCacheStorageManager().setup(
+            _ValueCacheStorageManager().get_singleton().setup(
                 **kwargs
             )
 
             return True
 
         def shutdown(self):
-            _ValueCacheStorageManager().shutdown()
+            _ValueCacheStorageManager().get_singleton().shutdown()
 
             return True
 
@@ -72,7 +89,11 @@ def _allocate():
             self,
             key_path,
         ):
-            result = _ValueCacheStorageManager().is_key_found(key_path)
+            result = (
+                _ValueCacheStorageManager()
+                    .get_singleton()
+                    .is_key_found(key_path)
+            )
 
             return result
 
@@ -82,9 +103,12 @@ def _allocate():
             output_type=None,
         ):
             if output_type is None:
-                output_type = _TargetCacheValue.DEFINED
+                output_type = _TargetCacheValue().DEFINED
 
-            value = _ValueCacheStorageManager().get_one_value(key_path)
+            value = (
+                _ValueCacheStorageManager().get_singleton()
+                    .get_one_value(key_path)
+            )
 
             self.throw_if_value_is_explicitly_invalid(
                 value,
@@ -100,16 +124,19 @@ def _allocate():
             output_type=None,
         ):
             if output_type is None:
-                output_type = _TargetCacheValue.DEFINED
+                output_type = _TargetCacheValue().DEFINED
 
             self.throw_if_value_is_explicitly_invalid(
                 value,
                 output_type,
             )
 
-            result = _ValueCacheStorageManager().set_one_value(
-                key_path,
-                value,
+            result = (
+                _ValueCacheStorageManager().get_singleton()
+                    .set_one_value(
+                        key_path,
+                        value,
+                    )
             )
 
             return result
@@ -120,17 +147,26 @@ def _allocate():
         ):
             self.throw_if_key_not_found(key_path)
 
-            result = _ValueCacheStorageManager().remove_one_value(key_path)
+            result = (
+                _ValueCacheStorageManager().get_singleton()
+                    .remove_one_value(key_path)
+            )
 
             return result
 
         def clear_all_values(self):
-            result = _ValueCacheStorageManager().clear_all_values()
+            result = (
+                _ValueCacheStorageManager().get_singleton()
+                    .clear_all_values()
+            )
 
             return result
 
         def display_all_items(self):
-            result = _ValueCacheStorageManager().display_all_items()
+            result = (
+                _ValueCacheStorageManager().get_singleton()
+                    .display_all_items()
+            )
 
             return result
 
@@ -139,32 +175,36 @@ def _allocate():
             value,
             output_type=None,
         ):
+            TargetCacheValue = (
+                _TargetCacheValue()
+            )
+
             if output_type is None:
-                output_type = _TargetCacheValue.DEFINED
+                output_type = TargetCacheValue.DEFINED
 
             match output_type:
-                case _TargetCacheValue.FILESYSTEM_PATH:
-                    _FilesystemManager().throw_if_filesystem_path_invalid(
-                        value,
+                case TargetCacheValue.FILESYSTEM_PATH:
+                    _FilesystemManager().get_singleton().throw_if_filesystem_path_invalid(
+                        value
                     )
 
                     return True
 
-                case _TargetCacheValue.FILE_PATH:
-                    _FilesystemManager().throw_if_file_path_invalid(
-                        value,
+                case TargetCacheValue.FILE_PATH:
+                    _FilesystemManager().get_singleton().throw_if_file_path_invalid(
+                        value
                     )
 
                     return True
 
-                case _TargetCacheValue.FOLDER_PATH:
-                    _FilesystemManager().throw_if_folder_path_invalid(
-                        value,
+                case TargetCacheValue.FOLDER_PATH:
+                    _FilesystemManager().get_singleton().throw_if_folder_path_invalid(
+                        value
                     )
 
                     return True
 
-                case _TargetCacheValue.DEFINED:
+                case TargetCacheValue.DEFINED:
                     self.throw_if_undefined(value)
 
                     return True
@@ -176,7 +216,7 @@ def _allocate():
             self,
             key_path,
         ):
-            if not _ValueCacheStorageManager().is_key_found(key_path):
+            if not _ValueCacheStorageManager().get_singleton().is_key_found(key_path):
                 raise KeyError(
                     f"key path '{key_path}' does not exist",
                 )
@@ -203,4 +243,4 @@ def ValueCacheManager():
     return _ValueCacheManager
 
 
-# ValueCacheManager()
+# ValueCacheManager().get_singleton()

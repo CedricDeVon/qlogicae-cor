@@ -2,8 +2,9 @@ __all__ = (
     "JsonManager",
 )
 
-_Path = None
+_pathlib = None
 _JsonManager = None
+_ExternalDependencyManager = None
 
 
 def _allocate():
@@ -23,6 +24,9 @@ def _allocate():
         def __init__(self):
             self.construct()
 
+        def __enter__(self):
+            return self
+
         def __exit__(self, exc_type, exc_value, traceback):
             self.shutdown()
 
@@ -39,9 +43,9 @@ def _allocate():
 
         def is_valid(
             self,
-            file_path,
+            file_pathlib,
         ):
-            path = _Path(file_path)
+            path = _pathlib().Path(file_pathlib)
 
             return (
                 path.suffix.lower()
@@ -87,11 +91,21 @@ def _allocate():
             self._is_key_sortable = value
 
         def construct(self):
-            global _Path
+            global _ExternalDependencyManager
+            global _pathlib
 
-            from pathlib import Path
+            from .external_dependency_manager import ExternalDependencyManager
 
-            _Path = Path
+            _ExternalDependencyManager = (
+                ExternalDependencyManager().get_singleton
+            )
+
+            _pathlib = (
+                _ExternalDependencyManager().import_module(
+                    path="pathlib",
+                )
+            )
+
 
             self._valid_file_extensions = {
                 ".json",

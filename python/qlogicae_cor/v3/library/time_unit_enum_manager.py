@@ -5,6 +5,7 @@ __all__ = (
 _EnumConversionValue = None
 _TimeUnit = None
 _TimeUnitEnumManager = None
+_ExternalDependencyManager = None
 
 
 def _allocate():
@@ -16,6 +17,9 @@ def _allocate():
 
         def __init__(self):
             self.construct()
+
+        def __enter__(self):
+            return self
 
         def __exit__(self, exc_type, exc_value, traceback):
             self.shutdown()
@@ -30,12 +34,30 @@ def _allocate():
         def construct(self):
             global _EnumConversionValue
             global _TimeUnit
+            global _ExternalDependencyManager
 
-            from .enum_conversion_value import EnumConversionValue
-            from .time_unit import TimeUnit
+            from .external_dependency_manager import ExternalDependencyManager
 
-            _EnumConversionValue = EnumConversionValue()
-            _TimeUnit = TimeUnit()
+            _ExternalDependencyManager = (
+                ExternalDependencyManager().get_singleton
+            )
+
+            _EnumConversionValue = (
+                _ExternalDependencyManager().import_module(
+                    path=".enum_conversion_value",
+                    package="qlogicae_cor.v3.library",
+                    member="EnumConversionValue",
+                    is_member_callable=True
+                )
+            )
+            _TimeUnit = (
+                _ExternalDependencyManager().import_module(
+                    path=".time_unit",
+                    package="qlogicae_cor.v3.library",
+                    member="TimeUnit",
+                    is_member_callable=True
+                )
+            )
 
             return True
 
@@ -53,100 +75,107 @@ def _allocate():
             input_type,
             output_type=None,
         ):
+            EnumConversionValue = (
+                _EnumConversionValue()
+            )
+            TimeUnit = (
+                _TimeUnit()
+            )
+
             if output_type is None:
-                output_type = _EnumConversionValue.STRING
+                output_type = EnumConversionValue.STRING
 
             match output_type:
-                case _EnumConversionValue.STRING:
+                case EnumConversionValue.STRING:
                     match input_type:
-                        case _TimeUnit.NANOSECOND:
+                        case TimeUnit.NANOSECOND:
                             return "nanosecond"
 
-                        case _TimeUnit.MICROSECOND:
+                        case TimeUnit.MICROSECOND:
                             return "microsecond"
 
-                        case _TimeUnit.MILLISECOND:
+                        case TimeUnit.MILLISECOND:
                             return "millisecond"
 
-                        case _TimeUnit.SECOND:
+                        case TimeUnit.SECOND:
                             return "second"
 
-                        case _TimeUnit.MINUTE:
+                        case TimeUnit.MINUTE:
                             return "minute"
 
-                        case _TimeUnit.HOUR:
+                        case TimeUnit.HOUR:
                             return "hour"
 
-                        case _TimeUnit.DAY:
+                        case TimeUnit.DAY:
                             return "day"
 
-                        case _TimeUnit.WEEK:
+                        case TimeUnit.WEEK:
                             return "week"
 
-                        case _TimeUnit.MONTH:
+                        case TimeUnit.MONTH:
                             return "month"
 
-                        case _TimeUnit.YEAR:
+                        case TimeUnit.YEAR:
                             return "year"
 
-                        case _TimeUnit.DECADE:
+                        case TimeUnit.DECADE:
                             return "decade"
 
-                        case _TimeUnit.CENTURY:
+                        case TimeUnit.CENTURY:
                             return "century"
 
-                        case _TimeUnit.MILLENNIUM:
+                        case TimeUnit.MILLENNIUM:
                             return "millennium"
 
                         case _:
                             return "none"
 
-                case _EnumConversionValue.ENUM:
+                case EnumConversionValue.ENUM:
                     match str(input_type).lower():
                         case "nanosecond" | "ns":
-                            return _TimeUnit.NANOSECOND
+                            return TimeUnit.NANOSECOND
 
                         case "microsecond" | "us":
-                            return _TimeUnit.MICROSECOND
+                            return TimeUnit.MICROSECOND
 
                         case "millisecond" | "ms":
-                            return _TimeUnit.MILLISECOND
+                            return TimeUnit.MILLISECOND
 
                         case "second" | "sec":
-                            return _TimeUnit.SECOND
+                            return TimeUnit.SECOND
 
                         case "minute" | "min":
-                            return _TimeUnit.MINUTE
+                            return TimeUnit.MINUTE
 
                         case "hour" | "hr":
-                            return _TimeUnit.HOUR
+                            return TimeUnit.HOUR
 
                         case "day" | "d":
-                            return _TimeUnit.DAY
+                            return TimeUnit.DAY
 
                         case "week" | "wk":
-                            return _TimeUnit.WEEK
+                            return TimeUnit.WEEK
 
                         case "month" | "mon":
-                            return _TimeUnit.MONTH
+                            return TimeUnit.MONTH
 
                         case "year" | "yr":
-                            return _TimeUnit.YEAR
+                            return TimeUnit.YEAR
 
                         case "decade" | "deca":
-                            return _TimeUnit.DECADE
+                            return TimeUnit.DECADE
 
                         case "century" | "cen":
-                            return _TimeUnit.CENTURY
+                            return TimeUnit.CENTURY
 
                         case "millennium" | "mil":
-                            return _TimeUnit.MILLENNIUM
+                            return TimeUnit.MILLENNIUM
 
                         case _:
-                            return _TimeUnit.NONE
+                            return TimeUnit.NONE
 
                 case _:
-                    return _EnumConversionValue.NONE
+                    return EnumConversionValue.NONE
 
     _TimeUnitEnumManager = __TimeUnitEnumManager
     _allocate = lambda: None

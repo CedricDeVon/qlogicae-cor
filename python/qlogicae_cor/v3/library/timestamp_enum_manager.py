@@ -5,6 +5,7 @@ __all__ = (
 _EnumConversionValue = None
 _Timestamp = None
 _TimestampEnumManager = None
+_ExternalDependencyManager = None
 
 
 def _allocate():
@@ -16,6 +17,9 @@ def _allocate():
 
         def __init__(self):
             self.construct()
+
+        def __enter__(self):
+            return self
 
         def __exit__(self, exc_type, exc_value, traceback):
             self.shutdown()
@@ -30,12 +34,30 @@ def _allocate():
         def construct(self):
             global _EnumConversionValue
             global _Timestamp
+            global _ExternalDependencyManager
 
-            from .enum_conversion_value import EnumConversionValue
-            from .timestamp import Timestamp
+            from .external_dependency_manager import ExternalDependencyManager
 
-            _EnumConversionValue = EnumConversionValue()
-            _Timestamp = Timestamp()
+            _ExternalDependencyManager = (
+                ExternalDependencyManager().get_singleton
+            )
+
+            _EnumConversionValue = (
+                _ExternalDependencyManager().import_module(
+                    path=".enum_conversion_value",
+                    package="qlogicae_cor.v3.library",
+                    member="EnumConversionValue",
+                    is_member_callable=True
+                )
+            )
+            _Timestamp = (
+                _ExternalDependencyManager().import_module(
+                    path=".timestamp",
+                    package="qlogicae_cor.v3.library",
+                    member="Timestamp",
+                    is_member_callable=True
+                )
+            )
 
             return True
 
@@ -53,34 +75,41 @@ def _allocate():
             input_type,
             output_type=None,
         ):
+            EnumConversionValue = (
+                _EnumConversionValue()
+            )
+            Timestamp = (
+                _Timestamp()
+            )
+
             if output_type is None:
-                output_type = _EnumConversionValue.STRING
+                output_type = EnumConversionValue.STRING
 
             match output_type:
-                case _EnumConversionValue.STRING:
+                case EnumConversionValue.STRING:
                     match input_type:
-                        case _Timestamp.ISO_DATE_STRING:
+                        case Timestamp.ISO_DATE_STRING:
                             return "iso_date_string"
 
-                        case _Timestamp.ISO_FILESYSTEM_STRING:
+                        case Timestamp.ISO_FILESYSTEM_STRING:
                             return "iso_filesystem_string"
 
                         case _:
                             return "iso_date_string"
 
-                case _EnumConversionValue.ENUM:
+                case EnumConversionValue.ENUM:
                     match input_type.lower():
                         case "local":
-                            return _Timestamp.ISO_DATE_STRING
+                            return Timestamp.ISO_DATE_STRING
 
                         case "iso_filesystem_string":
-                            return _Timestamp.ISO_FILESYSTEM_STRING
+                            return Timestamp.ISO_FILESYSTEM_STRING
 
                         case _:
-                            return _Timestamp.NONE
+                            return Timestamp.NONE
 
                 case _:
-                    return _EnumConversionValue.NONE
+                    return EnumConversionValue.NONE
 
     _TimestampEnumManager = __TimestampEnumManager
     _allocate = lambda: None

@@ -4,10 +4,10 @@ __all__ = (
 
 _shlex = None
 _subprocess = None
-_PythonRuntimeUtilityManager = None
 _TextEncodingManager = None
 _ScriptProcess = None
 _ScriptProcessManager = None
+_ExternalDependencyManager = None
 
 
 def _allocate():
@@ -24,6 +24,9 @@ def _allocate():
 
         def __init__(self):
             self.construct()
+
+        def __enter__(self):
+            return self
 
         def __exit__(self, exc_type, exc_value, traceback):
             self.shutdown()
@@ -53,30 +56,40 @@ def _allocate():
         def construct(self):
             global _shlex
             global _subprocess
-            global _PythonRuntimeUtilityManager
             global _TextEncodingManager
             global _ScriptProcess
 
-            import shlex  # nosec B404
-            import subprocess  # nosec B404
+            from .external_dependency_manager import ExternalDependencyManager
 
-            from .python_runtime_utility_manager import PythonRuntimeUtilityManager
-            from .script_process import ScriptProcess
-            from .text_encoding_manager import TextEncodingManager
-
-            _shlex = shlex
-            _subprocess = subprocess
-            _PythonRuntimeUtilityManager = (
-                PythonRuntimeUtilityManager().get_singleton
+            _ExternalDependencyManager = (
+                ExternalDependencyManager().get_singleton
             )
-            _TextEncodingManager = TextEncodingManager().get_singleton
-            _ScriptProcess = ScriptProcess()
-
-            if (
-                _PythonRuntimeUtilityManager()
-                .is_allocated_during_object_construction
-            ):
-                _TextEncodingManager()
+            _shlex = (
+                _ExternalDependencyManager().import_module(
+                    path="shlex",
+                )
+            )
+            _subprocess = (
+                _ExternalDependencyManager().import_module(
+                    path="subprocess",
+                )
+            )
+            _TextEncodingManager = (
+                _ExternalDependencyManager().import_module(
+                    path=".text_encoding_manager",
+                    package="qlogicae_cor.v3.library",
+                    member="TextEncodingManager",
+                    is_member_callable=True,
+                )
+            )
+            _ScriptProcess = (
+                _ExternalDependencyManager().import_module(
+                    path=".script_process",
+                    package="qlogicae_cor.v3.library",
+                    member="ScriptProcess",
+                    is_member_callable=True,
+                )
+            )
 
             self._selected_script_process = "subprocess"
             self._valid_script_processes = {
@@ -100,8 +113,12 @@ def _allocate():
             command,
             script_process_type=None,
         ):
+            ScriptProcess = (
+                _ScriptProcess()
+            )
+
             if script_process_type is None:
-                script_process_type = _ScriptProcess.SUBPROCESS
+                script_process_type = ScriptProcess.SUBPROCESS
 
             if not command:
                 raise ValueError(
@@ -109,21 +126,23 @@ def _allocate():
                 )
 
             encoding = (
-                _TextEncodingManager().selected_encoding
+                _TextEncodingManager()
+                    .get_singleton()
+                    .selected_encoding
             )
 
             match script_process_type:
-                case _ScriptProcess.SHELL:
-                    value = _subprocess.run(  # nosec B604
+                case ScriptProcess.SHELL:
+                    value = _subprocess().run(  # nosec B604
                         command,
                         encoding=encoding,
                         text=True,
                         shell=True,
                     )
 
-                case _ScriptProcess.SUBPROCESS:
-                    value = _subprocess.run(
-                        _shlex.split(command),
+                case ScriptProcess.SUBPROCESS:
+                    value = _subprocess().run(
+                        _shlex().split(command),
                         encoding=encoding,
                         text=True,
                     )

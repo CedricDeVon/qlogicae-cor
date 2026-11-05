@@ -7,8 +7,8 @@ _CliAppManager = None
 _PluginManager = None
 _CliCommandManager = None
 _ValueCacheManager = None
-_PythonRuntimeUtilityManager = None
 _PersistentCacheStorageManager = None
+_ExternalDependencyManager = None
 
 
 def _allocate():
@@ -25,6 +25,9 @@ def _allocate():
         def __init__(self):
             self.construct()
 
+        def __enter__(self):
+            return self
+
         def __exit__(self, exc_type, exc_value, traceback):
             self.shutdown()
 
@@ -40,31 +43,22 @@ def _allocate():
             global _PluginManager
             global _ValueCacheManager
             global _CliCommandManager
-            global _PythonRuntimeUtilityManager
             global _PersistentCacheStorageManager
+            global _ExternalDependencyManager
 
             from .cli_command_manager import CliCommandManager
             from .log_manager import LogManager
             from .persistent_cache_storage_manager import PersistentCacheStorageManager
             from .plugin_manager import PluginManager
-            from .python_runtime_utility_manager import PythonRuntimeUtilityManager
             from .value_cache_manager import ValueCacheManager
 
             _LogManager = LogManager().get_singleton
             _PluginManager = PluginManager().get_singleton
             _ValueCacheManager = ValueCacheManager().get_singleton
             _CliCommandManager = CliCommandManager().get_singleton
-            _PythonRuntimeUtilityManager = PythonRuntimeUtilityManager().get_singleton
             _PersistentCacheStorageManager = (
                 PersistentCacheStorageManager().get_singleton
             )
-
-            if (
-                _PythonRuntimeUtilityManager()
-                    .is_allocated_during_object_construction
-            ):
-                _PluginManager()
-                _CliCommandManager()
 
             self._options = {}
 

@@ -3,11 +3,11 @@ __all__ = (
 )
 
 _json = None
-_Path = None
-_PythonRuntimeUtilityManager = None
+_pathlib = None
 _JsonManager = None
 _TextEncodingManager = None
 _JsonFileIoManager = None
+_ExternalDependencyManager = None
 
 
 def _allocate():
@@ -20,6 +20,9 @@ def _allocate():
         def __init__(self):
             self.construct()
 
+        def __enter__(self):
+            return self
+
         def __exit__(self, exc_type, exc_value, traceback):
             self.shutdown()
 
@@ -31,31 +34,44 @@ def _allocate():
             return cls._singleton
 
         def construct(self):
+            global _ExternalDependencyManager
             global _json
-            global _Path
-            global _PythonRuntimeUtilityManager
+            global _pathlib
             global _JsonManager
             global _TextEncodingManager
 
-            import json
-            from pathlib import Path
+            from .external_dependency_manager import ExternalDependencyManager
 
-            from .json_manager import JsonManager
-            from .python_runtime_utility_manager import PythonRuntimeUtilityManager
-            from .text_encoding_manager import TextEncodingManager
-
-            _json = json
-            _Path = Path
-            _PythonRuntimeUtilityManager = (
-                PythonRuntimeUtilityManager().get_singleton
+            _ExternalDependencyManager = (
+                ExternalDependencyManager().get_singleton
             )
-            _JsonManager = JsonManager().get_singleton
-            _TextEncodingManager = TextEncodingManager().get_singleton
 
-            if _PythonRuntimeUtilityManager().is_allocated_during_object_construction:
-                _JsonManager()
-                _TextEncodingManager()
-
+            _json = (
+                _ExternalDependencyManager().import_module(
+                    path="json",
+                )
+            )
+            _pathlib = (
+                _ExternalDependencyManager().import_module(
+                    path="pathlib",
+                )
+            )
+            _JsonManager = (
+                _ExternalDependencyManager().import_module(
+                    path=".json_manager",
+                    package="qlogicae_cor.v3.library",
+                    member="JsonManager",
+                    is_member_callable=True,
+                )
+            )
+            _TextEncodingManager = (
+                _ExternalDependencyManager().import_module(
+                    path=".text_encoding_manager",
+                    package="qlogicae_cor.v3.library",
+                    member="TextEncodingManager",
+                    is_member_callable=True,
+                )
+            )
             return True
 
         def setup(self, **kwargs):
@@ -68,20 +84,20 @@ def _allocate():
             return True
 
         def read_file(self, file_path):
-            path = _Path(file_path)
+            path = _pathlib().Path(file_path)
 
             output_data = {}
 
             with path.open(
                 mode="r",
-                encoding=_TextEncodingManager().selected_encoding,
+                encoding=_TextEncodingManager().get_singleton().selected_encoding,
             ) as file:
-                output_data = _json.load(file) or {}
+                output_data = _json().load(file) or {}
 
             return output_data
 
         def write_file(self, file_path, data):
-            path = _Path(file_path)
+            path = _pathlib().Path(file_path)
 
             path.parent.mkdir(
                 parents=True,
@@ -90,14 +106,14 @@ def _allocate():
 
             with path.open(
                 mode="w",
-                encoding=_TextEncodingManager().selected_encoding,
+                encoding=_TextEncodingManager().get_singleton().selected_encoding,
             ) as file:
-                _json.dump(
+                _json().dump(
                     data,
                     file,
-                    indent=_JsonManager().indent_count,
-                    ensure_ascii=_JsonManager().is_ascii_format_enabled,
-                    sort_keys=_JsonManager().is_key_sortable,
+                    indent=_JsonManager().get_singleton().indent_count,
+                    ensure_ascii=_JsonManager().get_singleton().is_ascii_format_enabled,
+                    sort_keys=_JsonManager().get_singleton().is_key_sortable,
                 )
 
             return True

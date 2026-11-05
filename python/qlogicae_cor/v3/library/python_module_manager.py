@@ -6,6 +6,7 @@ _sys = None
 _pathlib = None
 _importlib_util = None
 _PythonModuleManager = None
+_ExternalDependencyManager = None
 
 
 def _allocate():
@@ -18,6 +19,9 @@ def _allocate():
         def __init__(self):
             self.construct()
 
+        def __enter__(self):
+            return self
+
         def __exit__(self, exc_type, exc_value, traceback):
             self.shutdown()
 
@@ -29,17 +33,32 @@ def _allocate():
             return cls._singleton
 
         def construct(self):
+            global _ExternalDependencyManager
             global _sys
             global _pathlib
             global _importlib_util
 
-            import importlib.util
-            import pathlib
-            import sys
+            from .external_dependency_manager import ExternalDependencyManager
 
-            _sys = sys
-            _pathlib = pathlib
-            _importlib_util = importlib.util
+            _ExternalDependencyManager = (
+                ExternalDependencyManager().get_singleton
+            )
+
+            _sys = (
+                _ExternalDependencyManager().import_module(
+                    path="sys",
+                )
+            )
+            _pathlib = (
+                _ExternalDependencyManager().import_module(
+                    path="pathlib",
+                )
+            )
+            _importlib_util = (
+                _ExternalDependencyManager().import_module(
+                    path="importlib.util",
+                )
+            )
 
             return True
 
@@ -55,7 +74,7 @@ def _allocate():
                 (),
             ) or ()
 
-            if isinstance(target_filesystem_paths, (str, _pathlib.Path)):
+            if isinstance(target_filesystem_paths, (str, _pathlib().Path)):
                 target_filesystem_paths = (target_filesystem_paths,)
 
             if not target_filesystem_paths:
@@ -66,7 +85,7 @@ def _allocate():
             folder_paths = tuple(
                 dict.fromkeys(
                     (
-                        _pathlib.Path.cwd() / path
+                        _pathlib().Path.cwd() / path
                     ).resolve()
                     for path in target_filesystem_paths
                 )
@@ -76,7 +95,7 @@ def _allocate():
 
             excluded_paths = {
                 (
-                    _pathlib.Path.cwd() / path
+                    _pathlib().Path.cwd() / path
                 ).resolve()
                 for path in (
                     kwargs.get("excluded_filesystem_paths", ()) or ()
@@ -126,7 +145,7 @@ def _allocate():
 
                     module_name = ".".join(module_parts)
 
-                    spec = _importlib_util.spec_from_file_location(
+                    spec = _importlib_util().spec_from_file_location(
                         module_name,
                         file_path,
                     )
@@ -136,15 +155,15 @@ def _allocate():
                             f"Cannot load module from {file_path}"
                         )
 
-                    module = _importlib_util.module_from_spec(spec)
+                    module = _importlib_util().module_from_spec(spec)
 
-                    _sys.modules[module_name] = module
+                    _sys().modules[module_name] = module
 
                     try:
                         spec.loader.exec_module(module)
 
                     except BaseException:
-                        _sys.modules.pop(module_name, None)
+                        _sys().modules.pop(module_name, None)
                         raise
 
                     modules.append(module)
@@ -157,7 +176,7 @@ def _allocate():
         def read_loaded_modules(self):
             return (
                 module_name
-                for module_name in _sys.modules
+                for module_name in _sys().modules
             )
 
 

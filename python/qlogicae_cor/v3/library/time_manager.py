@@ -3,12 +3,11 @@ __all__ = (
 )
 
 _time = None
-_date = None
 _datetime = None
 _TimeUnit = None
-_PythonRuntimeUtilityManager = None
 _TimeZoneManager = None
 _TimeManager = None
+_ExternalDependencyManager = None
 
 
 def _allocate():
@@ -25,6 +24,9 @@ def _allocate():
         def __init__(self):
             self.construct()
 
+        def __enter__(self):
+            return self
+
         def __exit__(self, exc_type, exc_value, traceback):
             self.shutdown()
 
@@ -37,13 +39,13 @@ def _allocate():
 
         @property
         def current_iso8601_date(self):
-            return _date.today().strftime(
+            return _datetime().date.today().strftime(
                 "%Y-%m-%d",
             )
 
         @property
         def current_nanosecond(self):
-            return _time.time_ns()
+            return _time().time_ns()
 
         @property
         def current_microsecond(self):
@@ -55,42 +57,54 @@ def _allocate():
 
         @property
         def current_second(self):
-            return _datetime.now(
-                _TimeZoneManager().selected_time_zone,
+            return _datetime().now(
+                _TimeZoneManager()
+                    .get_singleton()
+                    .selected_time_zone,
             ).second
 
         @property
         def current_minute(self):
-            return _datetime.now(
-                _TimeZoneManager().selected_time_zone,
+            return _datetime().now(
+                _TimeZoneManager()
+                    .get_singleton()
+                    .selected_time_zone,
             ).minute
 
         @property
         def current_hour(self):
-            return _datetime.now(
-                _TimeZoneManager().selected_time_zone,
+            return _datetime().now(
+                _TimeZoneManager()
+                    .get_singleton()
+                    .selected_time_zone,
             ).hour
 
         @property
         def current_day(self):
-            return _datetime.now(
-                _TimeZoneManager().selected_time_zone,
+            return _datetime().now(
+                _TimeZoneManager()
+                    .get_singleton()
+                    .selected_time_zone,
             ).day
 
         @property
         def current_week(self):
-            return _datetime.now().isocalendar().week
+            return _datetime().now().isocalendar().week
 
         @property
         def current_month(self):
-            return _datetime.now(
-                _TimeZoneManager().selected_time_zone,
+            return _datetime().now(
+                _TimeZoneManager()
+                    .get_singleton()
+                    .selected_time_zone,
             ).month
 
         @property
         def current_year(self):
-            return _datetime.now(
-                _TimeZoneManager().selected_time_zone,
+            return _datetime().now(
+                _TimeZoneManager()
+                    .get_singleton()
+                    .selected_time_zone,
             ).year
 
         @property
@@ -111,40 +125,58 @@ def _allocate():
 
         def construct(self):
             global _time
-            global _date
             global _datetime
             global _TimeUnit
-            global _PythonRuntimeUtilityManager
             global _TimeZoneManager
+            global _ExternalDependencyManager
 
-            import time
-            from datetime import date, datetime
+            from .external_dependency_manager import ExternalDependencyManager
 
-            from .python_runtime_utility_manager import PythonRuntimeUtilityManager
-            from .time_unit import TimeUnit
-            from .time_zone_manager import TimeZoneManager
+            _ExternalDependencyManager = (
+                ExternalDependencyManager().get_singleton
+            )
 
-            _time = time
-            _date = date
-            _datetime = datetime
-            _TimeUnit = TimeUnit()
-            _PythonRuntimeUtilityManager = PythonRuntimeUtilityManager()
-            _TimeZoneManager = TimeZoneManager().get_singleton
+            _time = (
+                _ExternalDependencyManager().import_module(
+                    path="time",
+                )
+            )
+            _datetime = (
+                _ExternalDependencyManager().import_module(
+                    path="datetime",
+                )
+            )
+            _TimeUnit = (
+                _ExternalDependencyManager().import_module(
+                    path=".time_unit",
+                    package="qlogicae_cor.v3.library",
+                    member="TimeUnit",
+                    is_member_callable=True,
+                )
+            )
+            _TimeZoneManager = (
+                _ExternalDependencyManager().import_module(
+                    path=".time_zone_manager",
+                    package="qlogicae_cor.v3.library",
+                    member="TimeZoneManager",
+                    is_member_callable=True,
+                )
+            )
 
             self._TIME_UNIT_TO_NANOSECONDS = {
-                _TimeUnit.NANOSECOND: 1.0,
-                _TimeUnit.MICROSECOND: 1e3,
-                _TimeUnit.MILLISECOND: 1e6,
-                _TimeUnit.SECOND: 1e9,
-                _TimeUnit.MINUTE: 60e9,
-                _TimeUnit.HOUR: 3600e9,
-                _TimeUnit.DAY: 86400e9,
-                _TimeUnit.WEEK: 604800e9,
-                _TimeUnit.MONTH: 2629746e9,
-                _TimeUnit.YEAR: 31556952e9,
-                _TimeUnit.DECADE: 315569520e9,
-                _TimeUnit.CENTURY: 3155695200e9,
-                _TimeUnit.MILLENNIUM: 31556952000e9,
+                _TimeUnit().NANOSECOND: 1.0,
+                _TimeUnit().MICROSECOND: 1e3,
+                _TimeUnit().MILLISECOND: 1e6,
+                _TimeUnit().SECOND: 1e9,
+                _TimeUnit().MINUTE: 60e9,
+                _TimeUnit().HOUR: 3600e9,
+                _TimeUnit().DAY: 86400e9,
+                _TimeUnit().WEEK: 604800e9,
+                _TimeUnit().MONTH: 2629746e9,
+                _TimeUnit().YEAR: 31556952e9,
+                _TimeUnit().DECADE: 315569520e9,
+                _TimeUnit().CENTURY: 3155695200e9,
+                _TimeUnit().MILLENNIUM: 31556952000e9,
             }
 
             return True
@@ -164,11 +196,11 @@ def _allocate():
             time_unit=None,
         ):
             if time_unit is None:
-                time_unit = _TimeUnit.SECOND
+                time_unit = _TimeUnit().SECOND
 
             return self.convert_time_unit(
-                _time.time_ns() - start,
-                _TimeUnit.NANOSECOND,
+                _time().time_ns() - start,
+                _TimeUnit().NANOSECOND,
                 time_unit,
             )
 
@@ -179,11 +211,11 @@ def _allocate():
             time_unit=None,
         ):
             if time_unit is None:
-                time_unit = _TimeUnit.SECOND
+                time_unit = _TimeUnit().SECOND
 
             return self.convert_time_unit(
                 end - start,
-                _TimeUnit.NANOSECOND,
+                _TimeUnit().NANOSECOND,
                 time_unit,
             )
 
@@ -194,10 +226,10 @@ def _allocate():
             output_time_unit=None,
         ):
             if input_time_unit is None:
-                input_time_unit = _TimeUnit.SECOND
+                input_time_unit = _TimeUnit().SECOND
 
             if output_time_unit is None:
-                output_time_unit = _TimeUnit.SECOND
+                output_time_unit = _TimeUnit().SECOND
 
             if input_time_unit is output_time_unit:
                 return float(value)

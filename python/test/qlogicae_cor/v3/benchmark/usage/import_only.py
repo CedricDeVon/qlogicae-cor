@@ -28,7 +28,6 @@ from qlogicae_cor.v3.library.macros_manager import MacrosManager
 from qlogicae_cor.v3.library.object_merge_manager import ObjectMergeManager
 from qlogicae_cor.v3.library.persistent_cache_storage_manager import PersistentCacheStorageManager
 from qlogicae_cor.v3.library.placeholder_value_manager import PlaceholderValueManager
-from qlogicae_cor.v3.library.python_runtime_utility_manager import PythonRuntimeUtilityManager
 from qlogicae_cor.v3.library.script_process import ScriptProcess
 from qlogicae_cor.v3.library.script_process_enum_manager import ScriptProcessEnumManager
 from qlogicae_cor.v3.library.script_process_manager import ScriptProcessManager

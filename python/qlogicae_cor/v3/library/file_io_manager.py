@@ -2,10 +2,10 @@ __all__ = (
     "FileIoManager",
 )
 
-_Path = None
-_PythonRuntimeUtilityManager = None
+_pathlib = None
 _TextEncodingManager = None
 _FileIoManager = None
+_ExternalDependencyManager = None
 
 
 def _allocate():
@@ -18,6 +18,9 @@ def _allocate():
         def __init__(self):
             self.construct()
 
+        def __enter__(self):
+            return self
+
         def __exit__(self, exc_type, exc_value, traceback):
             self.shutdown()
 
@@ -29,23 +32,29 @@ def _allocate():
             return cls._singleton
 
         def construct(self):
-            global _Path
-            global _PythonRuntimeUtilityManager
+            global _ExternalDependencyManager
+            global _pathlib
             global _TextEncodingManager
 
-            from pathlib import Path
+            from .external_dependency_manager import ExternalDependencyManager
 
-            from .python_runtime_utility_manager import PythonRuntimeUtilityManager
-            from .text_encoding_manager import TextEncodingManager
-
-            _Path = Path
-            _PythonRuntimeUtilityManager = (
-                PythonRuntimeUtilityManager().get_singleton
+            _ExternalDependencyManager = (
+                ExternalDependencyManager().get_singleton
             )
-            _TextEncodingManager = TextEncodingManager().get_singleton
 
-            if _PythonRuntimeUtilityManager().is_allocated_during_object_construction:
-                _TextEncodingManager()
+            _pathlib = (
+                _ExternalDependencyManager().import_module(
+                    path="pathlib",
+                )
+            )
+            _TextEncodingManager = (
+                _ExternalDependencyManager().import_module(
+                    path=".text_encoding_manager",
+                    package="qlogicae_cor.v3.library",
+                    member="TextEncodingManager",
+                    is_member_callable=True,
+                )
+            )
 
             return True
 
@@ -59,16 +68,16 @@ def _allocate():
             return True
 
         def read_file(self, file_path):
-            path = _Path(file_path)
+            path = _pathlib().Path(file_path)
 
             with path.open(
                 mode="r",
-                encoding=_TextEncodingManager().selected_encoding,
+                encoding=_TextEncodingManager().get_singleton().selected_encoding,
             ) as file:
                 return file.read() or ""
 
         def write_file(self, file_path, data):
-            path = _Path(file_path)
+            path = _pathlib().Path(file_path)
 
             path.parent.mkdir(
                 parents=True,
@@ -77,7 +86,7 @@ def _allocate():
 
             with path.open(
                 mode="w",
-                encoding=_TextEncodingManager().selected_encoding,
+                encoding=_TextEncodingManager().get_singleton().selected_encoding,
             ) as file:
                 file.write(str(data))
 

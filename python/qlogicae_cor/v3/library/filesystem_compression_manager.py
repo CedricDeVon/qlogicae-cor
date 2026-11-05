@@ -3,8 +3,9 @@ __all__ = (
 )
 
 _zipfile = None
-_Path = None
+_pathlib = None
 _FilesystemCompressionManager = None
+_ExternalDependencyManager = None
 
 
 def _allocate():
@@ -17,6 +18,9 @@ def _allocate():
         def __init__(self):
             self.construct()
 
+        def __enter__(self):
+            return self
+
         def __exit__(self, exc_type, exc_value, traceback):
             self.shutdown()
 
@@ -28,14 +32,26 @@ def _allocate():
             return cls._singleton
 
         def construct(self):
+            global _ExternalDependencyManager
             global _zipfile
-            global _Path
+            global _pathlib
 
-            import zipfile
-            from pathlib import Path
+            from .external_dependency_manager import ExternalDependencyManager
 
-            _zipfile = zipfile
-            _Path = Path
+            _ExternalDependencyManager = (
+                ExternalDependencyManager().get_singleton
+            )
+
+            _zipfile = (
+                _ExternalDependencyManager().import_module(
+                    path="zipfile",
+                )
+            )
+            _pathlib = (
+                _ExternalDependencyManager().import_module(
+                    path="pathlib",
+                )
+            )
 
             return True
 
@@ -54,19 +70,19 @@ def _allocate():
         ):
             match value.lower():
                 case "store" | "stored" | "none":
-                    result = _zipfile.ZIP_STORED
+                    result = _zipfile().ZIP_STORED
 
                 case "deflate" | "deflated":
-                    result = _zipfile.ZIP_DEFLATED
+                    result = _zipfile().ZIP_DEFLATED
 
                 case "bz2" | "bzip2":
-                    result = _zipfile.ZIP_BZIP2
+                    result = _zipfile().ZIP_BZIP2
 
                 case "lzma" | "xz":
-                    result = _zipfile.ZIP_LZMA
+                    result = _zipfile().ZIP_LZMA
 
                 case _:
-                    result = _zipfile.ZIP_DEFLATED
+                    result = _zipfile().ZIP_DEFLATED
 
             return result
 
@@ -76,8 +92,8 @@ def _allocate():
             destination_path,
             overwrite=False,
         ):
-            fs_archive_path = _Path(archive_path)
-            fs_destination_path = _Path(
+            fs_archive_path = _pathlib().Path(archive_path)
+            fs_destination_path = _pathlib().Path(
                 destination_path,
             ).resolve()
 
@@ -86,7 +102,7 @@ def _allocate():
                 exist_ok=True,
             )
 
-            with _zipfile.ZipFile(
+            with _zipfile().ZipFile(
                 fs_archive_path,
                 "r",
             ) as archive:
