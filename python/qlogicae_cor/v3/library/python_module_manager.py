@@ -66,21 +66,35 @@ def _allocate():
             self,
             **kwargs,
         ):
-            if not kwargs:
-                return tuple()
+            if not isinstance(kwargs, (dict)) or not kwargs:
+                raise ValueError("'kwargs' must be a non-empty dictionary")
+
+            return True
+
+        def shutdown(self):
+            return True
+
+        def read_imported_modules(
+            self,
+            **kwargs,
+        ):
+            if not isinstance(kwargs, (dict)) or not kwargs:
+                raise ValueError("'kwargs' must be a non-empty dictionary")
 
             target_filesystem_paths = kwargs.get(
                 "target_filesystem_paths",
                 (),
             ) or ()
-
-            if isinstance(target_filesystem_paths, (str, _pathlib().Path)):
-                target_filesystem_paths = (target_filesystem_paths,)
-
             if not target_filesystem_paths:
                 return tuple()
 
+            if not isinstance(target_filesystem_paths, (tuple, list)):
+                raise ValueError("'kwargs.target_filesystem_paths' must either be a tuple or list")
+
             is_recursive = kwargs.get("is_recursive", True)
+
+            if not isinstance(is_recursive, (bool)):
+                raise ValueError("'kwargs.is_recursive' must be a boolean")
 
             folder_paths = tuple(
                 dict.fromkeys(
@@ -92,15 +106,6 @@ def _allocate():
             )
             if not folder_paths:
                 return tuple()
-
-            excluded_paths = {
-                (
-                    _pathlib().Path.cwd() / path
-                ).resolve()
-                for path in (
-                    kwargs.get("excluded_filesystem_paths", ()) or ()
-                )
-            }
 
             modules = []
             imported_file_paths = set()
@@ -119,13 +124,6 @@ def _allocate():
                     resolved_file_path = file_path.resolve()
 
                     if resolved_file_path in imported_file_paths:
-                        continue
-
-                    if any(
-                        resolved_file_path == excluded_path
-                        or excluded_path in resolved_file_path.parents
-                        for excluded_path in excluded_paths
-                    ):
                         continue
 
                     imported_file_paths.add(resolved_file_path)
@@ -169,9 +167,6 @@ def _allocate():
                     modules.append(module)
 
             return tuple(modules)
-
-        def shutdown(self):
-            return True
 
         def read_loaded_modules(self):
             return (

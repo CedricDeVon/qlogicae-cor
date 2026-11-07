@@ -13,6 +13,10 @@ def _allocate():
     global _PluginManager
 
     class __PluginManager:
+        __slots__ = (
+            "_module_exports",
+        )
+
         _singleton = None
 
         def __init__(self):
@@ -24,20 +28,20 @@ def _allocate():
         def __exit__(self, exc_type, exc_value, traceback):
             self.shutdown()
 
+        @property
+        def module_exports(self):
+            return self._module_exports
+
+        @module_exports.setter
+        def module_exports(self, value):
+            self._module_exports = value
+
         @classmethod
         def get_singleton(cls):
             if cls._singleton is None:
                 cls._singleton = cls()
 
             return cls._singleton
-
-        @property
-        def collection(self):
-            return self._collection
-
-        @collection.setter
-        def collection(self, value):
-            self._collection = value
 
         def construct(self):
             global _ExternalDependencyManager
@@ -58,7 +62,6 @@ def _allocate():
                     is_member_callable=True,
                 )
             )
-
             _PythonModuleManager = (
                 _ExternalDependencyManager().import_module(
                     path=".python_module_manager",
@@ -68,7 +71,7 @@ def _allocate():
                 )
             )
 
-            self._collection = {}
+            self._module_exports = {}
 
             return True
 
@@ -76,21 +79,12 @@ def _allocate():
             self,
             **kwargs,
         ):
-            if not kwargs:
-                return False
-
-            options = (
-                kwargs.get(
-                    "options",
-                    {}
-                ) or {}
-            )
-            if not options:
-                return False
+            if not isinstance(kwargs, (dict)) or not kwargs:
+                raise ValueError("'kwargs' must be a non-empty dictionary")
 
             imported_modules = (
                 self.read_imported_modules(
-                    options
+                    kwargs
                 )
             )
             raw_module_exports = (
@@ -98,13 +92,13 @@ def _allocate():
                     imported_modules
                 )
             )
-            collection = (
+            module_exports = (
                 self.setup_merged_raw_module_exports(
                     raw_module_exports
                 )
             )
-            self._collection = (
-                collection
+            self._module_exports = (
+                module_exports
             )
 
             return True
@@ -112,12 +106,39 @@ def _allocate():
         def shutdown(self):
             return True
 
+        def write_module_exports(
+            self,
+            value
+        ):
+            if not isinstance(value, (dict)) or not value:
+                raise ValueError("'value' must be a non-empty dictionary")
+
+            self._module_exports = (
+                value
+            )
+
+            return True
+
+        def remove_module_exports(
+            self,
+        ):
+            self._module_exports = {}
+
+            return True
+
+        def read_module_exports(
+            self,
+        ):
+            return (
+                self._module_exports    
+            )
+
         def read_imported_modules(
             self,
             options,
         ):
-            if not options:
-                return {}
+            if not isinstance(options, (dict)) or not options:
+                raise ValueError("'options' must be a non-empty dictionary")
 
             imported_modules = (
                 _PythonModuleManager()
@@ -133,15 +154,15 @@ def _allocate():
 
         def read_raw_module_exports(
             self,
-            imported_modules
+            targets
         ):
-            if not imported_modules:
-                return {}
+            if not isinstance(targets, (dict)) or not targets:
+                raise ValueError("'targets' must be a non-empty dictionary")
 
             raw_module_exports = (
                 self.read_plugin_module_export(
                     imported_module
-                ) for imported_module in imported_modules
+                ) for imported_module in targets
             )
 
             return (
@@ -150,23 +171,23 @@ def _allocate():
 
         def setup_merged_raw_module_exports(
             self,
-            raw_module_exports
+            targets
         ):
-            if not raw_module_exports:
-                return {}
+            if not isinstance(targets, (dict)) or not targets:
+                raise ValueError("'targets' must be a non-empty dictionary")
 
             object_merge_manager = (
                 _ObjectMergeManager().get_singleton()
             )
             module_exports = {}
-            for raw_module_export in raw_module_exports:
-                if not raw_module_export:
-                    continue
+            for target in targets:
+                if not isinstance(target, (dict)) or not target:
+                    raise ValueError("'target' must be a non-empty dictionary")
 
                 module_exports = (
                     object_merge_manager.deep_merge(
                         module_exports,
-                        raw_module_export
+                        target
                     )
                 )
 
@@ -177,10 +198,10 @@ def _allocate():
 
         def read_plugin_module_export(
             self,
-            imported_module,
+            target,
         ):
-            if not imported_module:
-                return {}
+            if not isinstance(target, (dict)) or not target:
+                raise ValueError("'target' must be a non-empty dictionary")
 
             module_export = (
                 imported_module.export()

@@ -188,10 +188,7 @@ def _allocate():
             )
 
             target_filesystem_paths = (
-                kwargs.get(
-                    "target_filesystem_paths",
-                    tuple()
-                ) or tuple()
+                self._options.target_filesystem_paths or tuple()
             )
             for target_filesystem_path in target_filesystem_paths:
                 if not target_filesystem_path:

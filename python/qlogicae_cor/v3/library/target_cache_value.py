@@ -28,6 +28,3 @@ def TargetCacheValue():
         _allocate()
 
     return _TargetCacheValue
-
-
-# TargetCacheValue()

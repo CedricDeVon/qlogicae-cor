@@ -12,7 +12,8 @@ def _allocate():
 
     class __ValueCacheStorageManager:
         __slots__ = (
-            "_collection",
+            "_values",
+            "_defaults",
         )
 
         _singleton = None
@@ -29,13 +30,16 @@ def _allocate():
         def construct(self):
             global _ExternalDependencyManager
 
-            from .external_dependency_manager import ExternalDependencyManager
+            from .external_dependency_manager import (
+                ExternalDependencyManager,
+            )
 
             _ExternalDependencyManager = (
                 ExternalDependencyManager().get_singleton
             )
 
-            self._collection = {}
+            self._values = {}
+            self._defaults = {}
 
             return True
 
@@ -43,12 +47,27 @@ def _allocate():
             if not kwargs:
                 return False
 
-            self._collection = (
-                kwargs.get(
-                    "data",
-                    {}
-                ) or {}
-            )
+            values = kwargs.get("values", {})
+            defaults = kwargs.get("defaults", {})
+
+            if values is None:
+                values = {}
+
+            if defaults is None:
+                defaults = {}
+
+            if not isinstance(values, dict):
+                raise ValueError(
+                    "'kwargs.values' must be a dictionary"
+                )
+
+            if not isinstance(defaults, dict):
+                raise ValueError(
+                    "'kwargs.defaults' must be a dictionary"
+                )
+
+            self._values = values
+            self._defaults = defaults
 
             return True
 
@@ -63,81 +82,149 @@ def _allocate():
             return cls._singleton
 
         @property
-        def collection(self):
-            return self._collection
+        def values(self):
+            return self._values
 
-        @collection.setter
-        def collection(self, value):
-            self._collection = value
+        @values.setter
+        def values(self, value):
+            if not isinstance(value, dict):
+                raise ValueError("'values' must be a dictionary")
 
-        def is_key_found(self, keys):
-            if not keys:
-                return False
+            self._values = value
 
-            cache = self._collection
+        @property
+        def defaults(self):
+            return self._defaults
+
+        @defaults.setter
+        def defaults(self, value):
+            if not isinstance(value, dict):
+                raise ValueError("'defaults' must be a dictionary")
+
+            self._defaults = value
+
+        def _normalize_keys(self, **kwargs):
+            keys = kwargs.get("keys")
+
+            if isinstance(keys, str):
+                return (keys,)
+
+            if isinstance(keys, (tuple, list)):
+                if not keys:
+                    raise ValueError("'keys' cannot be empty")
+
+                return tuple(keys)
+
+            raise ValueError(
+                "'keys' must be a string, tuple, or list"
+            )
+
+        def _normalize_typename(self, **kwargs):
+            typename = kwargs.get("typename", "values")
+
+            if typename not in ("values", "defaults"):
+                raise ValueError(
+                    "'typename' must be either 'values' or 'defaults'"
+                )
+
+            return typename
+
+        def read_specified_cache(self, **kwargs):
+            typename = self._normalize_typename(**kwargs)
+
+            if typename == "values":
+                return self._values
+
+            return self._defaults
+
+        def _get_item_from_cache(self, **kwargs):
+            keys = kwargs["keys"]
+            typename = kwargs["typename"]
+
+            cache = self.read_specified_cache(
+                typename=typename,
+            )
 
             for key in keys:
                 if isinstance(cache, dict):
                     if key not in cache:
-                        return False
+                        return False, None
 
                 elif isinstance(cache, (list, tuple)):
                     if not isinstance(key, int):
-                        return False
+                        return False, None
 
                     if key < 0 or key >= len(cache):
-                        return False
+                        return False, None
 
                 else:
-                    return False
+                    return False, None
 
                 cache = cache[key]
 
-            return True
+            return True, cache
 
-        def get_one_value(self, keys):
-            if not keys:
-                return None
+        def _get_item(self, **kwargs):
+            keys = self._normalize_keys(
+                keys=kwargs.get("keys"),
+            )
 
-            cache = self._collection
+            typename = self._normalize_typename(
+                typename=kwargs.get("typename", "values"),
+            )
 
-            for key in keys:
-                if isinstance(cache, dict):
-                    if key not in cache:
-                        return None
+            found, item = self._get_item_from_cache(
+                keys=keys,
+                typename=typename,
+            )
 
-                elif isinstance(cache, (list, tuple)):
-                    if not isinstance(key, int):
-                        return None
+            if found or typename == "defaults":
+                return found, item
 
-                    if key < 0 or key >= len(cache):
-                        return None
+            return self._get_item_from_cache(
+                keys=keys,
+                typename="defaults",
+            )
 
-                else:
-                    return None
+        def is_key_item_found(self, **kwargs):
+            found, _ = self._get_item(
+                keys=kwargs.get("keys"),
+                typename=kwargs.get("typename", "values"),
+            )
 
-                cache = cache[key]
+            return found
 
-            return cache
+        def get_one_item(self, **kwargs):
+            found, item = self._get_item(
+                keys=kwargs.get("keys"),
+                typename=kwargs.get("typename", "values"),
+            )
 
-        def set_one_value(
-            self,
-            keys,
-            value,
-            create_missing=True,
-        ):
-            if not keys:
-                raise ValueError("'keys' cannot be empty")
+            return item if found else None
 
-            cache = self._collection
+        def _get_parent(self, **kwargs):
+            keys = self._normalize_keys(
+                keys=kwargs.get("keys"),
+            )
+
+            typename = self._normalize_typename(
+                typename=kwargs.get("typename", "values"),
+            )
+
+            create_missing = kwargs.get(
+                "create_missing",
+                True,
+            )
+
+            cache = self.read_specified_cache(
+                typename=typename,
+            )
 
             for key in keys[:-1]:
                 if isinstance(cache, dict):
                     if key not in cache:
                         if not create_missing:
-                            raise KeyError(
-                                f"key path '{keys}' not found"
-                            )
+                            return None, None
 
                         cache[key] = {}
 
@@ -145,10 +232,7 @@ def _allocate():
                         cache[key],
                         (dict, list),
                     ):
-                        raise TypeError(
-                            f"key path '{keys}' does not reference "
-                            "a dictionary or list"
-                        )
+                        return None, None
 
                     cache = cache[key]
 
@@ -161,136 +245,143 @@ def _allocate():
 
                     if key < 0 or key >= len(cache):
                         raise IndexError(
-                            f"index '{key}' is out of range"
+                            f"Index '{key}' is out of range"
                         )
 
                     cache = cache[key]
 
                 else:
-                    raise TypeError(
-                        f"cannot traverse into "
-                        f"'{type(cache).__name__}'"
-                    )
+                    return None, None
 
-            last = keys[-1]
+            return cache, keys[-1]
 
-            if isinstance(cache, dict):
-                cache[last] = value
+        def set_one_item(self, **kwargs):
+            keys = kwargs.get("keys")
+            value = kwargs.get("value")
 
-            elif isinstance(cache, list):
-                if not isinstance(last, int):
-                    raise TypeError(
-                        f"expected an index, got "
-                        f"{type(last).__name__}"
-                    )
-
-                if last < 0 or last >= len(cache):
-                    raise IndexError(
-                        f"index '{last}' is out of range"
-                    )
-
-                cache[last] = value
-
-            else:
-                raise TypeError(
-                    "destination is neither a "
-                    "dictionary nor a list"
-                )
-
-            return True
-
-        def remove_one_value(self, keys):
-            if not keys:
-                raise ValueError(
-                    "keys cannot be empty"
-                )
-
-            cache = self._collection
-
-            for key in keys[:-1]:
-                if isinstance(cache, dict):
-                    if key not in cache:
-                        raise KeyError(
-                            f"key path '{keys}' not found"
-                        )
-
-                elif isinstance(cache, list):
-                    if not isinstance(key, int):
-                        raise TypeError(
-                            f"expected an index, got "
-                            f"{type(key).__name__}"
-                        )
-
-                    if key < 0 or key >= len(cache):
-                        raise IndexError(
-                            f"index path '{keys}' "
-                            "is out of range"
-                        )
-
-                else:
-                    raise TypeError(
-                        f"cannot traverse into "
-                        f"'{type(cache).__name__}'"
-                    )
-
-                cache = cache[key]
-
-            last = keys[-1]
-
-            if isinstance(cache, dict):
-                try:
-                    del cache[last]
-                except KeyError:
-                    raise KeyError(
-                        f"key '{last}' not found"
-                    ) from None
-
-            elif isinstance(cache, list):
-                if not isinstance(last, int):
-                    raise TypeError(
-                        f"expected an index, got "
-                        f"{type(last).__name__}"
-                    )
-
-                if last < 0 or last >= len(cache):
-                    raise IndexError(
-                        f"index '{last}' is out of range"
-                    )
-
-                del cache[last]
-
-            else:
-                raise TypeError(
-                    "destination is neither a "
-                    "dictionary nor a list"
-                )
-
-            return True
-
-        def clear_all_values(self):
-            self._collection.clear()
-
-            return True
-
-        def display_one_item(self, key):
-            print(
-                f"- {key}: "
-                f"{self._collection[key]}"
+            typename = self._normalize_typename(
+                typename=kwargs.get("typename", "values"),
             )
 
+            parent, key = self._get_parent(
+                keys=keys,
+                typename=typename,
+                create_missing=kwargs.get(
+                    "create_missing",
+                    True,
+                ),
+            )
+
+            if parent is None:
+                return False
+
+            if isinstance(parent, dict):
+                parent[key] = value
+
+            elif isinstance(parent, list):
+                if not isinstance(key, int):
+                    raise TypeError(
+                        f"expected an index, got "
+                        f"'{type(key).__name__}'"
+                    )
+
+                if key < 0 or key >= len(parent):
+                    raise IndexError(
+                        f"Index '{key}' is out of range"
+                    )
+
+                parent[key] = value
+
+            else:
+                return False
+
             return True
 
-        def display_all_items(self):
+        def remove_one_item(self, **kwargs):
+            typename = self._normalize_typename(
+                typename=kwargs.get("typename", "values"),
+            )
+
+            parent, key = self._get_parent(
+                keys=kwargs.get("keys"),
+                typename=typename,
+                create_missing=False,
+            )
+
+            if parent is None:
+                return False
+
+            if isinstance(parent, dict):
+                if key not in parent:
+                    return False
+
+                del parent[key]
+
+            elif isinstance(parent, list):
+                if not isinstance(key, int):
+                    raise TypeError(
+                        f"expected an index, got "
+                        f"'{type(key).__name__}'"
+                    )
+
+                if key < 0 or key >= len(parent):
+                    return False
+
+                del parent[key]
+
+            else:
+                return False
+
+            return True
+
+        def remove_all_items(self, **kwargs):
+            cache = self.read_specified_cache(
+                typename=kwargs.get("typename", "values"),
+            )
+
+            cache.clear()
+
+            return True
+
+        def display_one_item(self, **kwargs):
+            found, item = self._get_item(
+                keys=kwargs.get("keys"),
+                typename=kwargs.get("typename", "values"),
+            )
+
+            if not found:
+                return False
+
             _json = (
                 _ExternalDependencyManager()
-                    .import_module(
-                        path="json"
-                    )
+                .import_module(path="json")
             )
 
             print(
                 _json().dumps(
-                    self._collection,
+                    item,
+                    indent=2,
+                    sort_keys=False,
+                    ensure_ascii=False,
+                    default=str,
+                )
+            )
+
+            return True
+
+        def display_all_items(self, **kwargs):
+            cache = self.read_specified_cache(
+                typename=kwargs.get("typename", "values"),
+            )
+
+            _json = (
+                _ExternalDependencyManager()
+                .import_module(path="json")
+            )
+
+            print(
+                _json().dumps(
+                    cache,
                     indent=2,
                     sort_keys=False,
                     ensure_ascii=False,
@@ -312,3 +403,47 @@ def ValueCacheStorageManager():
 
 
 # ValueCacheStorageManager()
+# Manager = ValueCacheStorageManager()
+# manager = Manager()
+
+# manager.setup(
+#     values={
+#         "database": {
+#             "host": "localhost",
+#         },
+#     },
+#     defaults={
+#         "database": {
+#             "host": "127.0.0.1",
+#             "port": 5432,
+#         },
+#     },
+# )
+
+# manager.get_one_item(
+#     keys=("database", "host"),
+# )
+# # "localhost"
+
+# manager.get_one_item(
+#     keys=("database", "port"),
+# )
+# # 5432
+
+# manager.set_one_item(
+#     keys=("database", "host"),
+#     value={},
+# )
+
+# manager.set_one_item(
+#     keys=("database", "host", "a", "b", "c"),
+#     value="192.168.1.100",
+# )
+
+# # manager.remove_one_item(
+# #     keys=("database", "host"),
+# # )
+
+# manager.display_all_items(
+#     typename="values",
+# )

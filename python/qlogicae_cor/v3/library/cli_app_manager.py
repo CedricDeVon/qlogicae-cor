@@ -2,12 +2,10 @@ __all__ = (
     "CliAppManager",
 )
 
-_LogManager = None
 _CliAppManager = None
-_PluginManager = None
+_CliPluginManager = None
 _CliCommandManager = None
-_ValueCacheManager = None
-_PersistentCacheStorageManager = None
+_CliDatabaseManager = None
 _ExternalDependencyManager = None
 
 
@@ -16,9 +14,7 @@ def _allocate():
     global _CliAppManager
 
     class __CliAppManager:
-        __slots__ = (
-            "_options",
-        )
+        __slots__ = ()
 
         _singleton = None
 
@@ -39,57 +35,172 @@ def _allocate():
             return cls._singleton
 
         def construct(self):
-            global _LogManager
-            global _PluginManager
-            global _ValueCacheManager
+            global _CliPluginManager
             global _CliCommandManager
-            global _PersistentCacheStorageManager
+            global _CliDatabaseManager
             global _ExternalDependencyManager
 
-            from .cli_command_manager import CliCommandManager
-            from .log_manager import LogManager
-            from .persistent_cache_storage_manager import PersistentCacheStorageManager
-            from .plugin_manager import PluginManager
-            from .value_cache_manager import ValueCacheManager
-
-            _LogManager = LogManager().get_singleton
-            _PluginManager = PluginManager().get_singleton
-            _ValueCacheManager = ValueCacheManager().get_singleton
-            _CliCommandManager = CliCommandManager().get_singleton
-            _PersistentCacheStorageManager = (
-                PersistentCacheStorageManager().get_singleton
+            from .external_dependency_manager import (
+                ExternalDependencyManager
+            )
+            from .cli_plugin_manager import (
+                CliPluginManager
+            )
+            from .cli_database_manager import (
+                CliDatabaseManager
             )
 
-            self._options = {}
+            _ExternalDependencyManager = (
+                ExternalDependencyManager().get_singleton
+            )
+            _CliPluginManager = (
+                _ExternalDependencyManager().import_module(
+                    path=".cli_plugin_manager",
+                    package="qlogicae_cor.v3.library",
+                    member="CliPluginManager",
+                    is_member_callable=True,
+                )
+            )
+            _CliDatabaseManager = (
+                _ExternalDependencyManager().import_module(
+                    path=".cli_database_manager",
+                    package="qlogicae_cor.v3.library",
+                    member="CliDatabaseManager",
+                    is_member_callable=True,
+                )
+            )
+            _CliCommandManager = (
+                _ExternalDependencyManager().import_module(
+                    path=".cli_command_manager",
+                    package="qlogicae_cor.v3.library",
+                    member="CliCommandManager",
+                    is_member_callable=True,
+                )
+            )
 
             return True
 
         def setup(self, **kwargs):
-            if not kwargs:
-                return False
+            if not isinstance(kwargs, (dict)) or not kwargs:
+                raise ValueError("'kwargs' must be a non-empty dictionary")
 
             return True
 
-        def shutdown(
-            self,
-            *,
-            wait=True,
-        ):
-            if self._thread_executor is not None:
-                self._thread_executor.shutdown(
-                    wait=wait,
-                )
-
-                self._thread_executor = None
-
-            if self._process_executor is not None:
-                self._process_executor.shutdown(
-                    wait=wait,
-                )
-
-                self._process_executor = None
-
+        def shutdown(self):
             return True
+
+
+    _CliAppManager = __CliAppManager
+    _allocate = lambda: None
+
+
+def CliAppManager():
+    if _CliAppManager is None:
+        _allocate()
+
+    return _CliAppManager
+
+
+
+CliAppManager().get_singleton().setup(
+    options={
+        ""
+    }
+)
+
+
+# __all__ = (
+#     "CliAppManager",
+# )
+
+# _LogManager = None
+# _CliAppManager = None
+# _PluginManager = None
+# _CliCommandManager = None
+# _ValueCacheManager = None
+# _PersistentCacheStorageManager = None
+# _ExternalDependencyManager = None
+
+
+# def _allocate():
+#     global _allocate
+#     global _CliAppManager
+
+#     class __CliAppManager:
+#         __slots__ = (
+#             "_options",
+#         )
+
+#         _singleton = None
+
+#         def __init__(self):
+#             self.construct()
+
+#         def __enter__(self):
+#             return self
+
+#         def __exit__(self, exc_type, exc_value, traceback):
+#             self.shutdown()
+
+#         @classmethod
+#         def get_singleton(cls):
+#             if cls._singleton is None:
+#                 cls._singleton = cls()
+
+#             return cls._singleton
+
+#         def construct(self):
+#             global _LogManager
+#             global _PluginManager
+#             global _ValueCacheManager
+#             global _CliCommandManager
+#             global _PersistentCacheStorageManager
+#             global _ExternalDependencyManager
+
+#             from .cli_command_manager import CliCommandManager
+#             from .log_manager import LogManager
+#             from .persistent_cache_storage_manager import PersistentCacheStorageManager
+#             from .plugin_manager import PluginManager
+#             from .value_cache_manager import ValueCacheManager
+
+#             _LogManager = LogManager().get_singleton
+#             _PluginManager = PluginManager().get_singleton
+#             _ValueCacheManager = ValueCacheManager().get_singleton
+#             _CliCommandManager = CliCommandManager().get_singleton
+#             _PersistentCacheStorageManager = (
+#                 PersistentCacheStorageManager().get_singleton
+#             )
+
+#             self._options = {}
+
+#             return True
+
+#         def setup(self, **kwargs):
+#             if not kwargs:
+#                 return False
+
+#             return True
+
+#         def shutdown(
+#             self,
+#             *,
+#             wait=True,
+#         ):
+#             if self._thread_executor is not None:
+#                 self._thread_executor.shutdown(
+#                     wait=wait,
+#                 )
+
+#                 self._thread_executor = None
+
+#             if self._process_executor is not None:
+#                 self._process_executor.shutdown(
+#                     wait=wait,
+#                 )
+
+#                 self._process_executor = None
+
+#             return True
 
         # def run_application(self, **kwargs):
         #     if not kwargs:
@@ -202,15 +313,15 @@ def _allocate():
         #     return 0 if value else 1
 
 
-    _CliAppManager = __CliAppManager
-    _allocate = lambda: None
+#     _CliAppManager = __CliAppManager
+#     _allocate = lambda: None
 
 
-def CliAppManager():
-    if _CliAppManager is None:
-        _allocate()
+# def CliAppManager():
+#     if _CliAppManager is None:
+#         _allocate()
 
-    return _CliAppManager
+#     return _CliAppManager
 
 
 # CliAppManager().get_singleton().run_application(

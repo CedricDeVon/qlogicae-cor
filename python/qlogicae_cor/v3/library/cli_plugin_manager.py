@@ -2,6 +2,7 @@ __all__ = (
     "CliPluginManager",
 )
 
+# _ObjectMergeManager = None
 _PluginManager = None
 _CliPluginManager = None
 _ExternalDependencyManager = None
@@ -34,30 +35,83 @@ def _allocate():
 
         def construct(self):
             global _PluginManager
+            # global _ObjectMergeManager
             global _ExternalDependencyManager
 
-            from .plugin_manager import PluginManager
+            from .plugin_manager import (
+                PluginManager
+            )
+            # from .object_merge_manager import (
+            #     ObjectMergeManager
+            # )
+            from .external_dependency_manager import (
+                ExternalDependencyManager
+            )
 
-            _PluginManager = PluginManager().get_singleton
+            _ExternalDependencyManager = (
+                ExternalDependencyManager().get_singleton
+            )
+            _PluginManager = (
+                _ExternalDependencyManager().import_module(
+                    path=".plugin_manager",
+                    package="qlogicae_cor.v3.library",
+                    member="PluginManager",
+                    is_member_callable=True,
+                )
+            )
+            # _ObjectMergeManager = (
+            #     _ExternalDependencyManager().import_module(
+            #         path=".object_merge_manager",
+            #         package="qlogicae_cor.v3.library",
+            #         member="ObjectMergeManager",
+            #         is_member_callable=True,
+            #     )
+            # )
 
             return True
 
         def setup(self, **kwargs):
-            if not kwargs:
-                return False
+            if not isinstance(kwargs, (dict)) or not kwargs:
+                raise ValueError("'kwargs' must be a non-empty dictionary")
+
+            options = (
+                kwargs.get(
+                    "options",
+                    {}
+                ) or {}
+            )
+            if not isinstance(options, (dict)):
+                raise ValueError("'kwargs.options' must be a non-empty dictionary")
+
+            plugin_setup_options = (
+                options.get(
+                    "plugin_setup",
+                    {}
+                ) or {}
+            )
+            if not isinstance(plugin_setup_options, (dict)):
+                raise ValueError("'kwargs.options.plugin_setup' must be a non-empty dictionary")
+
+            if plugin_setup_options:            
+                plugin_manager = (
+                    _PluginManager().get_singleton()
+                )
+                plugin_manager.setup(
+                    **plugin_setup_options
+                )            
 
             return True
 
         def shutdown(self):
             return True
 
-        def read_root_data(self):
+        def read_module_exports(self):
             plugin_manager = (
-                _PluginManager()
+                _PluginManager().get_singleton()
             )
 
             data = (
-                (plugin_manager.collection or {}).get(
+                (plugin_manager.module_exports or {}).get(
                     "cli", {}
                 ) or {}
             )
@@ -74,3 +128,7 @@ def CliPluginManager():
         _allocate()
 
     return _CliPluginManager
+
+
+
+
