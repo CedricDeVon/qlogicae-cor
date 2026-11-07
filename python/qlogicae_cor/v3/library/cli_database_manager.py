@@ -126,6 +126,13 @@ def _allocate():
                     "is_enabled": False,
                     "options": {
                         "database_path": "persistent_cache.db",
+                        "create_missing": True,
+                        "lifespan_in_seconds": 0.0,
+                        "file_mode": 0o600,
+                        "key_encoding": "utf-8",
+                        "auto_remove_expired": True,
+                        "auto_remove_invalid": True,
+                        "sync_on_write": False,
                     },
                     "callbacks": {
                         "on_pre_setup": None,
