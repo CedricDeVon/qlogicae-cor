@@ -60,18 +60,6 @@ def _allocate():
             from .external_dependency_manager import (
                 ExternalDependencyManager
             )
-            from .object_merge_manager import (
-                ObjectMergeManager
-            )
-            from .cli_plugin_manager import (
-                CliPluginManager
-            )
-            from .value_cache_storage_manager import (
-                ValueCacheStorageManager
-            )
-            from .persistent_cache_storage_manager import (
-                PersistentCacheStorageManager
-            )
 
             _ExternalDependencyManager = (
                 ExternalDependencyManager().get_singleton
@@ -110,47 +98,49 @@ def _allocate():
             )
 
             self._default_setup_options = {
-                "is_enabled": False,
-                "value_cache": {
+                "database": {
                     "is_enabled": False,
-                    "options": {
-                        "values": {},
-                        "defaults": {}
-                    }
+                    "value_cache": {
+                        "is_enabled": False,
+                        "options": {
+                            "values": {},
+                            "defaults": {}
+                        }
+                        "callbacks": {
+                            "on_pre_setup": None,
+                            "on_post_setup": None,
+                        },
+                    },
+                    "persistent_cache": {
+                        "is_enabled": False,
+                        "options": {
+                            "database_path": "persistent_cache.db",
+                            "create_missing": True,
+                            "lifespan_in_seconds": 0.0,
+                            "file_mode": 0o600,
+                            "key_encoding": "utf-8",
+                            "auto_remove_expired": True,
+                            "auto_remove_invalid": True,
+                            "sync_on_write": False,
+                        },
+                        "callbacks": {
+                            "on_pre_setup": None,
+                            "on_post_setup": None,
+                        },
+                    },
                     "callbacks": {
                         "on_pre_setup": None,
                         "on_post_setup": None,
                     },
-                },
-                "persistent_cache": {
-                    "is_enabled": False,
-                    "options": {
-                        "database_path": "persistent_cache.db",
-                        "create_missing": True,
-                        "lifespan_in_seconds": 0.0,
-                        "file_mode": 0o600,
-                        "key_encoding": "utf-8",
-                        "auto_remove_expired": True,
-                        "auto_remove_invalid": True,
-                        "sync_on_write": False,
-                    },
-                    "callbacks": {
-                        "on_pre_setup": None,
-                        "on_post_setup": None,
-                    },
-                },
-                "callbacks": {
-                    "on_pre_setup": None,
-                    "on_post_setup": None,
                 },
             }
 
             return True
 
         def setup(self, **kwargs):
-            if not isinstance(kwargs, (dict)) or not kwargs:
+            if not isinstance(kwargs, (dict)):
                 raise ValueError(
-                    "'kwargs' must be a non-empty dictionary"
+                    "'kwargs' must be a dictionary"
                 )
 
             kwargs = (
@@ -159,29 +149,43 @@ def _allocate():
                 )
             )
 
-            database_is_enabled = (
+            database_data = (
                 kwargs.get(
+                    "database",
+                    {}
+                ) or {}
+            )
+            if not isinstance(database_data, (dict)):
+                raise ValueError(
+                    f"plugin export property 'database' "
+                    "must be a dictinoary"
+                )
+
+            database_is_enabled = (
+                database_data.get(
                     "is_enabled",
                     False
                 )
             )
             if not isinstance(database_is_enabled, (bool)):
                 raise ValueError(
-                    "'kwargs.is_enabled' must be a boolean"
+                    "plugin export property 'database.is_enabled' "
+                    "must be a boolean"
                 )
             if not database_is_enabled:
                 return True
 
 
             database_callbacks = (
-                kwargs.get(
+                database_data.get(
                     "callbacks",
                     {}
                 ) or {}
             )
             if not isinstance(database_callbacks, (dict)):
                 raise ValueError(
-                    f"'kwargs.callbacks' must be a non-empty dictinoary"
+                    f"plugin export property 'database.callbacks' "
+                    "must be a dictinoary"
                 )
             
             database_callback_on_pre_setup = (
@@ -226,57 +230,71 @@ def _allocate():
             return True
 
         def setup_database(self, kwargs, property_name, class_name):
-            if not kwargs or not property_name or not class_name:
-                return True
+            if not isinstance(kwargs, (dict)):
+                raise ValueError(
+                    f"'kwargs' must be a dictionary"
+                )
+            if not isinstance(property_name, (dict)):
+                raise ValueError(
+                    f"'property_name' must be a string"
+                )
+            if not class_name:
+                raise ValueError(
+                    f"'class_name' must be defined"
+                )
 
             result = True
-            database = (
+            database_data = (
                 kwargs.get(
                     property_name,
                     {}
                 ) or {}
             )
-            if not isinstance(database, (dict)):
+            if not isinstance(database_data, (dict)):
                 raise ValueError(
-                    f"'kwargs.{property_name}' must be a non-empty dictionary"
+                    f"plugin export property "
+                    "'database.{property_name}' "
+                    "must be a dictionary"
                 )
-            if not database:
-                return result
 
             database_is_enabled = (
-                database.get(
+                database_data.get(
                     "is_enabled",
                     False
                 )
             )
             if not isinstance(database_is_enabled, (bool)):
                 raise ValueError(
-                    f"'kwargs.{property_name}.is_enabled' must be a boolean"
+                    f"plugin export property "
+                    "'database.{property_name}.is_enabled' "
+                    "must be a boolean"
                 )
 
             if database_is_enabled:
                 database_options = (
-                    database.get(
+                    database_data.get(
                         "options",
                         {}
                     ) or {}
                 )
                 if not isinstance(database_options, (dict)):
                     raise ValueError(
-                        f"'kwargs.{property_name}.options' must be a non-empty dictinoary"
+                        f"plugin export property "
+                        "'database.{property_name}.options' "
+                        "must be a dictinoary"
                     )
-                if not database_options:
-                    return result
 
                 database_callbacks = (
-                    database.get(
+                    database_data.get(
                         "callbacks",
                         {}
                     ) or {}
                 )
                 if not isinstance(database_callbacks, (dict)):
                     raise ValueError(
-                        f"'kwargs.{property_name}.callbacks' must be a non-empty dictinoary"
+                        f"plugin export property "
+                        "'database.{property_name}.callbacks' "
+                        "must be a dictinoary"
                     )
                 
                 database_callback_on_pre_setup = (

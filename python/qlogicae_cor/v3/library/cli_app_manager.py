@@ -2,6 +2,7 @@ __all__ = (
     "CliAppManager",
 )
 
+_CliLogManager = None
 _CliAppManager = None
 _CliPluginManager = None
 _CliCommandManager = None
@@ -35,6 +36,7 @@ def _allocate():
             return cls._singleton
 
         def construct(self):
+            global _CliLogManager
             global _CliPluginManager
             global _CliCommandManager
             global _CliDatabaseManager
@@ -43,15 +45,17 @@ def _allocate():
             from .external_dependency_manager import (
                 ExternalDependencyManager
             )
-            from .cli_plugin_manager import (
-                CliPluginManager
-            )
-            from .cli_database_manager import (
-                CliDatabaseManager
-            )
 
             _ExternalDependencyManager = (
                 ExternalDependencyManager().get_singleton
+            )
+            _CliLogManager = (
+                _ExternalDependencyManager().import_module(
+                    path=".cli_log_manager",
+                    package="qlogicae_cor.v3.library",
+                    member="CliLogManager",
+                    is_member_callable=True,
+                )
             )
             _CliPluginManager = (
                 _ExternalDependencyManager().import_module(
