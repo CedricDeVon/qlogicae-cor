@@ -61,9 +61,7 @@ def _allocate():
             global _ObjectMergeManager
             global _ExternalDependencyManager
 
-            from .external_dependency_manager import (
-                ExternalDependencyManager
-            )
+            from .external_dependency_manager import ExternalDependencyManager
 
             _ExternalDependencyManager = (
                 ExternalDependencyManager().get_singleton
@@ -100,64 +98,56 @@ def _allocate():
             self._command_handler = None
             self._parsed_arguments = None
             self._default_setup_options = {
-                "command": {
-                    "options": {
+                "options": {
+                    "args": (),
+                    "kwargs": {
+                        "prog": "name",
+                        "description": "command description",
+                        "add_help": True,
+                        "allow_abbrev": False,
+                    },
+                    "commands": [],
+                    "subparsers": {
                         "args": (),
                         "kwargs": {
-                            "prog": "name",
-                            "description": "command description",
-                            "add_help": True,
-                            "allow_abbrev": False,
-                        },
-                        "commands": [],
-                        "subparsers": {
-                            "args": (),
-                            "kwargs": {
-                                "dest": "command",
-                                "required": True,
-                                "title": "commands",
-                                "description": None,
-                                "metavar": "",
-                            },
+                            "dest": "command",
+                            "required": True,
+                            "title": "commands",
+                            "description": None,
+                            "metavar": "",
                         },
                     },
-                    "callbacks": {
-                        "on_pre_setup": None,
-                        "on_post_setup": None,
-                    },
+                },
+                "callbacks": {
+                    "on_pre_setup": None,
+                    "on_post_setup": None,
                 },
             }
 
             return True
 
-        def apply_setup_options(self, kwargs):
-            if not isinstance(kwargs, (dict)):
+        def apply_setup_options(self, options):
+            if not isinstance(options, (dict)):
                 raise ValueError(
-                    "'kwargs' must be a dictionary"
+                    "'options' must be a dictionary"
                 )
 
-            kwargs = (
+            options = (
                 _ObjectMergeManager()
                     .get_singleton()
                     .deep_merge(
                         self._default_setup_options,
-                        kwargs,
+                        options,
                     )
             )
 
-            return kwargs
+            return options
 
         def setup(self, **kwargs):
             if not isinstance(kwargs, (dict)):
                 raise ValueError(
                     "'kwargs' must be a dictionary"
                 )
-
-            kwargs = (
-                self.apply_setup_options(
-                    kwargs
-                )
-            )
 
             command_data = (
                 kwargs.get(
@@ -167,9 +157,15 @@ def _allocate():
             )
             if not isinstance(command_data, (dict)):
                 raise ValueError(
-                    f"plugin export property 'command' "
+                    "plugin export property 'command' "
                     "must be a dictinoary"
                 )
+
+            command_data = (
+                self.apply_setup_options(
+                    command_data
+                )
+            )
 
             options = (
                 command_data.get(
@@ -235,7 +231,7 @@ def _allocate():
         def setup_parser(self, options):
             if not isinstance(options, (dict)):
                 raise ValueError(
-                    f"'options' must be a dictionary"
+                    "'options' must be a dictionary"
                 )
 
             parser_args = options.get("args") or ()
@@ -359,3 +355,6 @@ def CliCommandManager():
 
     return _CliCommandManager
 
+
+
+# CliCommandManager()

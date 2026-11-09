@@ -14,6 +14,8 @@ def _allocate():
     global _PythonModuleManager
 
     class __PythonModuleManager:
+        __slots__ = ()
+
         _singleton = None
 
         def __init__(self):
@@ -76,25 +78,21 @@ def _allocate():
 
         def read_imported_modules(
             self,
-            **kwargs,
+            target_filesystem_paths,
+            is_recursive=True,
         ):
-            if not isinstance(kwargs, (dict)) or not kwargs:
-                raise ValueError("'kwargs' must be a non-empty dictionary")
-
-            target_filesystem_paths = kwargs.get(
-                "target_filesystem_paths",
-                (),
-            ) or ()
-            if not target_filesystem_paths:
-                return tuple()
-
             if not isinstance(target_filesystem_paths, (tuple, list)):
-                raise ValueError("'kwargs.target_filesystem_paths' must either be a tuple or list")
-
-            is_recursive = kwargs.get("is_recursive", True)
+                raise ValueError(
+                    "'target_filesystem_paths' must either be a tuple or list"
+                )
 
             if not isinstance(is_recursive, (bool)):
-                raise ValueError("'kwargs.is_recursive' must be a boolean")
+                raise ValueError(
+                    "'is_recursive' must be a boolean"
+                )
+
+            if not target_filesystem_paths:
+                return tuple()
 
             folder_paths = tuple(
                 dict.fromkeys(

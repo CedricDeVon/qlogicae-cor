@@ -2,6 +2,7 @@ __all__ = (
     "PluginManager",
 )
 
+_types = None
 _PluginManager = None
 _ObjectMergeManager = None
 _PythonModuleManager = None
@@ -47,6 +48,7 @@ def _allocate():
             global _ExternalDependencyManager
             global _ObjectMergeManager
             global _PythonModuleManager
+            global _types
 
             from .external_dependency_manager import ExternalDependencyManager
 
@@ -54,6 +56,11 @@ def _allocate():
                 ExternalDependencyManager().get_singleton
             )
 
+            _types = (
+                _ExternalDependencyManager().import_module(
+                    path="types",
+                )
+            )
             _ObjectMergeManager = (
                 _ExternalDependencyManager().import_module(
                     path=".object_merge_manager",
@@ -94,9 +101,11 @@ def _allocate():
             )
             module_exports = (
                 self.setup_merged_raw_module_exports(
+                    kwargs,
                     raw_module_exports
                 )
             )
+
             self._module_exports = (
                 module_exports
             )
@@ -130,7 +139,7 @@ def _allocate():
             self,
         ):
             return (
-                self._module_exports    
+                self._module_exports
             )
 
         def read_imported_modules(
@@ -140,24 +149,35 @@ def _allocate():
             if not isinstance(options, (dict)) or not options:
                 raise ValueError("'options' must be a non-empty dictionary")
 
-            imported_modules = (
+            target_filesystem_paths = (
+                options.get("target_filesystem_paths", tuple()) or tuple()
+            )
+            is_recursive = (
+                options.get("is_recursive", True)
+            )
+            modules = (
+                options.get("modules", tuple()) or tuple()
+            )
+
+            imported_modules = tuple(
                 _PythonModuleManager()
                     .get_singleton()
-                    .read_import_modules(
-                        **options
+                    .read_imported_modules(
+                        target_filesystem_paths,
+                        is_recursive
                     )
             )
 
             return (
-                imported_modules
+                imported_modules + modules
             )
 
         def read_raw_module_exports(
             self,
             targets
         ):
-            if not isinstance(targets, (dict)) or not targets:
-                raise ValueError("'targets' must be a non-empty dictionary")
+            if not isinstance(targets, (tuple, list)) or not targets:
+                raise ValueError("'targets' must either be a non-empty tuple or list")
 
             raw_module_exports = (
                 self.read_plugin_module_export(
@@ -165,20 +185,30 @@ def _allocate():
                 ) for imported_module in targets
             )
 
-            return (
+            return tuple(
                 raw_module_exports
             )
 
         def setup_merged_raw_module_exports(
             self,
+            options,
             targets
         ):
-            if not isinstance(targets, (dict)) or not targets:
-                raise ValueError("'targets' must be a non-empty dictionary")
+            if not isinstance(targets, (tuple, list)) or not targets:
+                raise ValueError("'targets' must either be a non-empty tuple or list")
 
             object_merge_manager = (
                 _ObjectMergeManager().get_singleton()
             )
+
+            raw_data = (
+                options.get("raw_data", tuple()) or tuple()
+            )
+
+            targets = (
+                tuple(targets) + raw_data
+            )
+
             module_exports = {}
             for target in targets:
                 if not isinstance(target, (dict)) or not target:
@@ -200,11 +230,11 @@ def _allocate():
             self,
             target,
         ):
-            if not isinstance(target, (dict)) or not target:
-                raise ValueError("'target' must be a non-empty dictionary")
+            if not isinstance(target, (_types().ModuleType)) or not target:
+                raise ValueError("'target' must be a non-empty module")
 
             module_export = (
-                imported_module.export()
+                target.export()
             )
 
             return (

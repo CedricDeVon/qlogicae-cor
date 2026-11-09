@@ -9,7 +9,6 @@ def main():
         from qlogicae_cor.v3.library.cli_app_manager import CliAppManager
         from qlogicae_cor.v3.library.cli_command_manager import CliCommandManager
         from qlogicae_cor.v3.library.cli_database_manager import CliDatabaseManager
-        from qlogicae_cor.v3.library.cli_display_manager import CliDisplayManager
         from qlogicae_cor.v3.library.cli_log_manager import CliLogManager
         from qlogicae_cor.v3.library.cli_plugin_manager import CliPluginManager
         from qlogicae_cor.v3.library.console_log_manager import ConsoleLogManager
@@ -54,7 +53,6 @@ def main():
         from qlogicae_cor.v3.library.timestamp import Timestamp
         from qlogicae_cor.v3.library.timestamp_enum_manager import TimestampEnumManager
         from qlogicae_cor.v3.library.timestamp_manager import TimestampManager
-        from qlogicae_cor.v3.library.value_cache_manager import ValueCacheManager
         from qlogicae_cor.v3.library.value_cache_storage_manager import ValueCacheStorageManager
         from qlogicae_cor.v3.library.plugin_manager import PluginManager
         from qlogicae_cor.v3.library.python_module_manager import PythonModuleManager
@@ -64,7 +62,6 @@ def main():
         CliAppManager().get_singleton()
         CliCommandManager().get_singleton()
         CliDatabaseManager().get_singleton()
-        CliDisplayManager().get_singleton()
         CliLogManager().get_singleton()
         CliPluginManager().get_singleton()
         ConsoleLogManager().get_singleton()
@@ -110,7 +107,6 @@ def main():
         Timestamp()
         TimestampEnumManager().get_singleton()
         TimestampManager().get_singleton()
-        ValueCacheManager().get_singleton()
         ValueCacheStorageManager().get_singleton()
         PluginManager().get_singleton()
         PythonModuleManager().get_singleton()

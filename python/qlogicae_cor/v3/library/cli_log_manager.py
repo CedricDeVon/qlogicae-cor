@@ -59,9 +59,7 @@ def _allocate():
             global _ConsoleLogManager
             global _ExternalDependencyManager
 
-            from .external_dependency_manager import (
-                ExternalDependencyManager
-            )
+            from .external_dependency_manager import ExternalDependencyManager
 
             _ExternalDependencyManager = (
                 ExternalDependencyManager().get_singleton
@@ -108,40 +106,38 @@ def _allocate():
             )
 
             self._default_setup_options = {
-                "log": {
-                    "is_enabled": False,
-                    "file": {
-                        "options": {
-                            "is_enabled": False,
-                            "is_verbose_enabled": True,
-                            "log_level": 10,
-                            "stack_level": 3,
-                            "targets": [
-                                "logs.log"
-                            ],
-                        },
-                        "callbacks": {
-                            "on_pre_setup": None,
-                            "on_post_setup": None,
-                        },
-                    },
-                    "console": {
-                        "options": {
-                            "is_enabled": False,
-                            "is_verbose_enabled": True,
-                            "log_level": 10,
-                            "stack_level": 3,
-                        },
-                        "callbacks": {
-                            "on_pre_setup": None,
-                            "on_post_setup": None,
-                        },
+                "is_enabled": False,
+                "file": {
+                    "options": {
+                        "is_enabled": False,
+                        "is_verbose_enabled": True,
+                        "log_level": 10,
+                        "stack_level": 3,
+                        "target_filesystem_paths": [
+                            "logs.log"
+                        ],
                     },
                     "callbacks": {
                         "on_pre_setup": None,
                         "on_post_setup": None,
                     },
-                }
+                },
+                "console": {
+                    "options": {
+                        "is_enabled": False,
+                        "is_verbose_enabled": True,
+                        "log_level": 10,
+                        "stack_level": 3,
+                    },
+                    "callbacks": {
+                        "on_pre_setup": None,
+                        "on_post_setup": None,
+                    },
+                },
+                "callbacks": {
+                    "on_pre_setup": None,
+                    "on_post_setup": None,
+                },
             }
 
             return True
@@ -152,12 +148,6 @@ def _allocate():
                     "'kwargs' must be a dictionary"
                 )
 
-            kwargs = (
-                self.apply_setup_options(
-                    kwargs
-                )
-            )
-
             log_data = (
                 kwargs.get(
                     "log",
@@ -166,10 +156,15 @@ def _allocate():
             )
             if not isinstance(log_data, (dict)):
                 raise ValueError(
-                    f"plugin export property 'log' "
+                    "plugin export property 'log' "
                     "must be a dictinoary"
                 )
 
+            log_data = (
+                self.apply_setup_options(
+                    log_data
+                )
+            )
             log_is_enabled = (
                 log_data.get(
                     "is_enabled",
@@ -192,10 +187,10 @@ def _allocate():
             )
             if not isinstance(log_callbacks, (dict)):
                 raise ValueError(
-                    f"plugin export property 'log.callbacks' "
+                    "plugin export property 'log.callbacks' "
                     "must be a dictinoary"
                 )
-            
+
             log_callback_on_pre_setup = (
                 log_callbacks.get(
                     "on_pre_setup",
@@ -237,30 +232,30 @@ def _allocate():
         def shutdown(self):
             return True
 
-        def setup_logger(self, kwargs, property_name, class_name):
-            if not isinstance(kwargs, (dict)):
+        def setup_logger(self, options, property_name, class_name):
+            if not isinstance(options, (dict)):
                 raise ValueError(
-                    f"'kwargs' must be a dictionary"
+                    "'options' must be a dictionary"
                 )
-            if not isinstance(property_name, (dict)):
+            if not isinstance(property_name, (str)):
                 raise ValueError(
-                    f"'property_name' must be a string"
+                    "'property_name' must be a string"
                 )
             if not class_name:
                 raise ValueError(
-                    f"'class_name' must be defined"
+                    "'class_name' must be defined"
                 )
 
             result = True
             log_data = (
-                kwargs.get(
+                options.get(
                     property_name,
                     {}
                 ) or {}
             )
             if not isinstance(log_data, (dict)):
                 raise ValueError(
-                    f"plugin export property "
+                    "plugin export property "
                     "'log.{property_name}' "
                     "must be a dictionary"
                 )
@@ -273,7 +268,7 @@ def _allocate():
             )
             if not isinstance(log_data_options, (dict)):
                 raise ValueError(
-                    f"plugin export property "
+                    "plugin export property "
                     "'log.{property_name}.options' "
                     "must be a dictinoary"
                 )
@@ -286,7 +281,7 @@ def _allocate():
             )
             if not isinstance(log_data_is_enabled, (bool)):
                 raise ValueError(
-                    f"plugin export property "
+                    "plugin export property "
                     "'log.{property_name}.options.is_enabled' "
                     "must be a boolean"
                 )
@@ -300,11 +295,11 @@ def _allocate():
                 )
                 if not isinstance(log_data_callbacks, (dict)):
                     raise ValueError(
-                        f"plugin export property "
+                        "plugin export property "
                         "'log.{property_name}.callbacks' "
                         "must be a dictinoary"
                     )
-                
+
                 log_data_callback_on_pre_setup = (
                     log_data_callbacks.get(
                         "on_pre_setup",
@@ -325,7 +320,7 @@ def _allocate():
                     log_data_callback_on_pre_setup()
 
                 result = class_name().get_singleton().setup(
-                    options=_LogOptions(
+                    options=_LogOptions()(
                         **log_data_options
                     )
                 )
@@ -338,22 +333,22 @@ def _allocate():
 
             return result
 
-        def apply_setup_options(self, kwargs):
-            if not isinstance(kwargs, (dict)):
+        def apply_setup_options(self, options):
+            if not isinstance(options, (dict)):
                 raise ValueError(
-                    "'kwargs' must be a dictionary"
+                    "'options' must be a dictionary"
                 )
 
-            kwargs = (
+            options = (
                 _ObjectMergeManager()
                     .get_singleton()
                     .deep_merge(
                         self._default_setup_options,
-                        kwargs,
+                        options,
                     )
             )
 
-            return kwargs
+            return options
 
 
     _CliLogManager = __CliLogManager
@@ -365,3 +360,7 @@ def CliLogManager():
         _allocate()
 
     return _CliLogManager
+
+
+
+# CliLogManager()

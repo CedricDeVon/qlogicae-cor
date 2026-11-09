@@ -57,9 +57,7 @@ def _allocate():
             global _ValueCacheStorageManager
             global _PersistentCacheStorageManager
 
-            from .external_dependency_manager import (
-                ExternalDependencyManager
-            )
+            from .external_dependency_manager import ExternalDependencyManager
 
             _ExternalDependencyManager = (
                 ExternalDependencyManager().get_singleton
@@ -98,40 +96,38 @@ def _allocate():
             )
 
             self._default_setup_options = {
-                "database": {
+                "is_enabled": False,
+                "value_cache": {
                     "is_enabled": False,
-                    "value_cache": {
-                        "is_enabled": False,
-                        "options": {
-                            "values": {},
-                            "defaults": {}
-                        }
-                        "callbacks": {
-                            "on_pre_setup": None,
-                            "on_post_setup": None,
-                        },
-                    },
-                    "persistent_cache": {
-                        "is_enabled": False,
-                        "options": {
-                            "database_path": "persistent_cache.db",
-                            "create_missing": True,
-                            "lifespan_in_seconds": 0.0,
-                            "file_mode": 0o600,
-                            "key_encoding": "utf-8",
-                            "auto_remove_expired": True,
-                            "auto_remove_invalid": True,
-                            "sync_on_write": False,
-                        },
-                        "callbacks": {
-                            "on_pre_setup": None,
-                            "on_post_setup": None,
-                        },
+                    "options": {
+                        "values": {},
+                        "defaults": {}
                     },
                     "callbacks": {
                         "on_pre_setup": None,
                         "on_post_setup": None,
                     },
+                },
+                "persistent_cache": {
+                    "is_enabled": False,
+                    "options": {
+                        "database_path": "persistent_cache.db",
+                        "create_missing": True,
+                        "lifespan_in_seconds": 0.0,
+                        "file_mode": 0o600,
+                        "key_encoding": "utf-8",
+                        "auto_remove_expired": True,
+                        "auto_remove_invalid": True,
+                        "sync_on_write": False,
+                    },
+                    "callbacks": {
+                        "on_pre_setup": None,
+                        "on_post_setup": None,
+                    },
+                },
+                "callbacks": {
+                    "on_pre_setup": None,
+                    "on_post_setup": None,
                 },
             }
 
@@ -143,12 +139,6 @@ def _allocate():
                     "'kwargs' must be a dictionary"
                 )
 
-            kwargs = (
-                self.apply_setup_options(
-                    kwargs
-                )
-            )
-
             database_data = (
                 kwargs.get(
                     "database",
@@ -157,10 +147,15 @@ def _allocate():
             )
             if not isinstance(database_data, (dict)):
                 raise ValueError(
-                    f"plugin export property 'database' "
+                    "plugin export property 'database' "
                     "must be a dictinoary"
                 )
 
+            database_data = (
+                self.apply_setup_options(
+                    database_data
+                )
+            )
             database_is_enabled = (
                 database_data.get(
                     "is_enabled",
@@ -184,10 +179,10 @@ def _allocate():
             )
             if not isinstance(database_callbacks, (dict)):
                 raise ValueError(
-                    f"plugin export property 'database.callbacks' "
+                    "plugin export property 'database.callbacks' "
                     "must be a dictinoary"
                 )
-            
+
             database_callback_on_pre_setup = (
                 database_callbacks.get(
                     "on_pre_setup",
@@ -229,30 +224,30 @@ def _allocate():
         def shutdown(self):
             return True
 
-        def setup_database(self, kwargs, property_name, class_name):
-            if not isinstance(kwargs, (dict)):
+        def setup_database(self, options, property_name, class_name):
+            if not isinstance(options, (dict)):
                 raise ValueError(
-                    f"'kwargs' must be a dictionary"
+                    "'options' must be a dictionary"
                 )
-            if not isinstance(property_name, (dict)):
+            if not isinstance(property_name, (str)):
                 raise ValueError(
-                    f"'property_name' must be a string"
+                    "'property_name' must be a string"
                 )
             if not class_name:
                 raise ValueError(
-                    f"'class_name' must be defined"
+                    "'class_name' must be defined"
                 )
 
             result = True
             database_data = (
-                kwargs.get(
+                options.get(
                     property_name,
                     {}
                 ) or {}
             )
             if not isinstance(database_data, (dict)):
                 raise ValueError(
-                    f"plugin export property "
+                    "plugin export property "
                     "'database.{property_name}' "
                     "must be a dictionary"
                 )
@@ -265,7 +260,7 @@ def _allocate():
             )
             if not isinstance(database_is_enabled, (bool)):
                 raise ValueError(
-                    f"plugin export property "
+                    "plugin export property "
                     "'database.{property_name}.is_enabled' "
                     "must be a boolean"
                 )
@@ -279,7 +274,7 @@ def _allocate():
                 )
                 if not isinstance(database_options, (dict)):
                     raise ValueError(
-                        f"plugin export property "
+                        "plugin export property "
                         "'database.{property_name}.options' "
                         "must be a dictinoary"
                     )
@@ -292,11 +287,11 @@ def _allocate():
                 )
                 if not isinstance(database_callbacks, (dict)):
                     raise ValueError(
-                        f"plugin export property "
+                        "plugin export property "
                         "'database.{property_name}.callbacks' "
                         "must be a dictinoary"
                     )
-                
+
                 database_callback_on_pre_setup = (
                     database_callbacks.get(
                         "on_pre_setup",
@@ -328,22 +323,22 @@ def _allocate():
 
             return result
 
-        def apply_setup_options(self, kwargs):
-            if not isinstance(kwargs, (dict)):
+        def apply_setup_options(self, options):
+            if not isinstance(options, (dict)):
                 raise ValueError(
-                    "'kwargs' must be a non-empty dictionary"
+                    "'options' must be a non-empty dictionary"
                 )
 
-            kwargs = (
+            options = (
                 _ObjectMergeManager()
                     .get_singleton()
                     .deep_merge(
                         self._default_setup_options,
-                        kwargs,
+                        options,
                     )
             )
 
-            return kwargs
+            return options
 
 
     _CliDatabaseManager = __CliDatabaseManager
@@ -356,3 +351,5 @@ def CliDatabaseManager():
 
     return _CliDatabaseManager
 
+
+# CliDatabaseManager()

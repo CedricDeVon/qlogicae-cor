@@ -36,12 +36,7 @@ def _allocate():
             global _PluginManager
             global _ExternalDependencyManager
 
-            from .plugin_manager import (
-                PluginManager
-            )
-            from .external_dependency_manager import (
-                ExternalDependencyManager
-            )
+            from .external_dependency_manager import ExternalDependencyManager
 
             _ExternalDependencyManager = (
                 ExternalDependencyManager().get_singleton
@@ -61,31 +56,12 @@ def _allocate():
             if not isinstance(kwargs, (dict)):
                 raise ValueError("'kwargs' must be a dictionary")
 
-            options = (
-                kwargs.get(
-                    "options",
-                    {}
-                ) or {}
+            plugin_manager = (
+                _PluginManager().get_singleton()
             )
-            if not isinstance(options, (dict)):
-                raise ValueError("'kwargs.options' must be a dictionary")
-
-            plugin_setup_options = (
-                options.get(
-                    "plugin_setup",
-                    {}
-                ) or {}
+            plugin_manager.setup(
+                **kwargs
             )
-            if not isinstance(plugin_setup_options, (dict)):
-                raise ValueError("'kwargs.options.plugin_setup' must be a dictionary")
-
-            if plugin_setup_options:            
-                plugin_manager = (
-                    _PluginManager().get_singleton()
-                )
-                plugin_manager.setup(
-                    **plugin_setup_options
-                )            
 
             return True
 
@@ -94,13 +70,12 @@ def _allocate():
 
         def read_module_exports(self):
             plugin_manager = (
-                _PluginManager().get_singleton()
+                _PluginManager()
+                    .get_singleton()
             )
 
             data = (
-                (plugin_manager.module_exports or {}).get(
-                    "cli", {}
-                ) or {}
+                plugin_manager.module_exports or {}
             )
 
             return data
@@ -116,3 +91,6 @@ def CliPluginManager():
 
     return _CliPluginManager
 
+
+
+# CliPluginManager()
