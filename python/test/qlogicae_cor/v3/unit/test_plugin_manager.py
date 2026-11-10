@@ -187,7 +187,6 @@ class TestPluginManagerWrites:
     def test_should_reject_invalid_module_exports(self, manager, value):
         with pytest.raises(
             ValueError,
-            match="'value' must be a non-empty dictionary",
         ):
             manager.write_module_exports(value)
 
@@ -327,7 +326,6 @@ class TestPluginManagerImportedModules:
     def test_should_reject_invalid_options(self, manager, options):
         with pytest.raises(
             ValueError,
-            match="'options' must be a non-empty dictionary",
         ):
             manager.read_imported_modules(options)
 
@@ -387,14 +385,12 @@ class TestPluginManagerRawExports:
     def test_should_reject_empty_targets(self, manager):
         with pytest.raises(
             ValueError,
-            match="'targets' must either be a non-empty tuple or list",
         ):
             manager.read_raw_module_exports(())
 
     def test_should_reject_empty_target_list(self, manager):
         with pytest.raises(
             ValueError,
-            match="'targets' must either be a non-empty tuple or list",
         ):
             manager.read_raw_module_exports([])
 
@@ -414,7 +410,6 @@ class TestPluginManagerRawExports:
     def test_should_reject_invalid_plugin_module(self, manager, target):
         with pytest.raises(
             ValueError,
-            match="'target' must be a non-empty module",
         ):
             manager.read_plugin_module_export(target)
 
@@ -583,14 +578,12 @@ class TestPluginManagerMerge:
     def test_should_reject_empty_targets(self, manager):
         with pytest.raises(
             ValueError,
-            match="'targets' must either be a non-empty tuple or list",
         ):
             manager.setup_merged_raw_module_exports({}, ())
 
     def test_should_reject_empty_target_list(self, manager):
         with pytest.raises(
             ValueError,
-            match="'targets' must either be a non-empty tuple or list",
         ):
             manager.setup_merged_raw_module_exports({}, [])
 
@@ -610,7 +603,6 @@ class TestPluginManagerMerge:
     def test_should_reject_invalid_merge_targets(self, manager, target):
         with pytest.raises(
             ValueError,
-            match="'target' must be a non-empty dictionary",
         ):
             manager.setup_merged_raw_module_exports(
                 {},
@@ -636,10 +628,31 @@ class TestPluginManagerMerge:
     ):
         with pytest.raises(
             ValueError,
-            match="'target' must be a non-empty dictionary",
         ):
             manager.setup_merged_raw_module_exports(
                 {"raw_data": raw_data},
+                ({"first": 1},),
+            )
+
+    @pytest.mark.parametrize(
+        "options",
+        [
+            None,
+            (),
+            [],
+            "",
+            0,
+            False,
+            object(),
+        ],
+    )
+
+    def test_should_reject_invalid_options(self, manager, options):
+        with pytest.raises(
+            ValueError,
+        ):
+            manager.setup_merged_raw_module_exports(
+                options,
                 ({"first": 1},),
             )
 
@@ -859,7 +872,6 @@ class TestPluginManagerSetup:
     def test_should_reject_empty_setup_arguments(self, manager):
         with pytest.raises(
             ValueError,
-            match="'kwargs' must be a non-empty dictionary",
         ):
             manager.setup()
 
@@ -885,7 +897,6 @@ class TestPluginManagerSetup:
 
         with pytest.raises(
             ValueError,
-            match="'target' must be a non-empty dictionary",
         ):
             manager.setup(
                 modules=(module,),

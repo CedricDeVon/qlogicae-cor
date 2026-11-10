@@ -72,7 +72,8 @@ class TestValueCacheStorageManager:
             manager.defaults = []
 
     def test_setup_should_return_false_without_arguments(self, manager):
-        assert manager.setup() is False
+        with pytest.raises(ValueError):
+            manager.setup()
 
     def test_setup_should_initialize_values_and_defaults(self, manager):
         values = {"value": 1}

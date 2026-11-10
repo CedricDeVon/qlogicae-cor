@@ -67,8 +67,8 @@ def test_get_singleton_returns_same_instance():
 
 
 def test_setup_failed():
-    result = SingletonManager().setup()
-    assert result is False
+    with pytest.raises(ValueError):
+        SingletonManager().setup()
 
 
 def test_setup_success():

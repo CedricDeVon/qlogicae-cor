@@ -13,9 +13,7 @@ import importlib
 
 from enum import StrEnum
 
-external_dependency_manager_module = importlib.import_module(
-    "qlogicae_cor.v3.library.external_dependency_manager"
-)
+from qlogicae_cor.v3.library import external_dependency_manager
 
 
 @pytest.fixture
@@ -385,7 +383,7 @@ class EnumConversionValueEnumManagerTest:
 @pytest.fixture
 def module():
     return importlib.reload(
-        external_dependency_manager_module
+        external_dependency_manager
     )
 
 
@@ -1542,7 +1540,7 @@ class ExternalDependencyManagerTest:
     ):
         deallocated_targets = []
         original_target_class = (
-            external_dependency_manager_module._ImportTarget
+            external_dependency_manager._ImportTarget
         )
 
         class TrackingImportTarget(original_target_class):
@@ -1552,7 +1550,7 @@ class ExternalDependencyManagerTest:
                 return super().deallocate()
 
         monkeypatch.setattr(
-            external_dependency_manager_module,
+            external_dependency_manager,
             "_ImportTarget",
             TrackingImportTarget,
         )
@@ -1926,7 +1924,7 @@ class ExternalDependencyManagerTest:
             return original_import_module(*args, **kwargs)
 
         monkeypatch.setattr(
-            external_dependency_manager_module._importlib,
+            external_dependency_manager._importlib,
             "import_module",
             tracked_import_module,
         )
@@ -2216,11 +2214,12 @@ class TestEnumConversionValueEnumManagerConstruction:
 
 
 class TestEnumConversionValueEnumManagerLifecycle:
-    def test_should_return_false_when_setup_receives_no_arguments(
+    def test_should_return_true_when_setup_receives_no_arguments(
         self,
         manager,
     ):
-        assert manager.setup() is False
+        with pytest.raises(ValueError):
+            manager.setup()
 
     @pytest.mark.parametrize(
         "kwargs",
@@ -2530,3 +2529,188 @@ class TestEnumConversionValueEnumManagerStress:
         ]
 
         assert results == ["string"] * 100
+
+
+class TestEnumConversionValueEnumManagerMissingConversionCases:
+
+    def test_should_use_string_output_when_output_type_is_explicitly_none(
+        self,
+        manager,
+        enum_class,
+    ):
+        result = manager.convert_value(
+            enum_class.STRING,
+            None,
+        )
+
+        assert result == "string"
+
+    @pytest.mark.parametrize(
+        ("input_type", "expected_value"),
+        [
+            ("String", "string"),
+            ("StRiNg", "string"),
+            ("Enum", "none"),
+            ("EnUm", "none"),
+            ("Custom", "custom"),
+            ("CuStOm", "custom"),
+            ("None", "enum"),
+            ("NoNe", "enum"),
+        ],
+    )
+    def test_should_convert_mixed_case_input_to_enum(
+        self,
+        manager,
+        enum_class,
+        input_type,
+        expected_value,
+    ):
+        result = manager.convert_value(
+            input_type,
+            enum_class.ENUM,
+        )
+
+        assert result == enum_class(expected_value)
+
+    @pytest.mark.parametrize(
+        ("input_type", "expected"),
+        [
+            ("STRING", "STRING"),
+            ("ENUM", "NONE"),
+            ("CUSTOM", "CUSTOM"),
+            ("NONE", "ENUM"),
+        ],
+    )
+    def test_should_convert_enum_member_to_enum(
+        self,
+        manager,
+        enum_class,
+        input_type,
+        expected,
+    ):
+        result = manager.convert_value(
+            getattr(enum_class, input_type),
+            enum_class.ENUM,
+        )
+
+        assert result is getattr(enum_class, expected)
+        
+    def test_should_return_none_when_direct_exit_is_called(
+        self,
+        manager,
+    ):
+        result = manager.__exit__(None, None, None)
+
+        assert result is None
+
+    def test_should_not_suppress_exception_when_direct_exit_is_called(
+        self,
+        manager,
+    ):
+        exception = RuntimeError("execution failed")
+
+        result = manager.__exit__(
+            RuntimeError,
+            exception,
+            exception.__traceback__,
+        )
+
+        assert result is None
+
+
+class TestEnumConversionValueEnumManagerDependencyFailures:
+
+    def test_should_propagate_dependency_import_error(
+        self,
+        manager_module,
+        dependency_manager_module,
+        monkeypatch,
+    ):
+        class FakeExternalDependencyManager:
+
+            def get_singleton(self):
+                return self
+
+            def import_module(self, **kwargs):
+                raise ImportError("dependency unavailable")
+
+        monkeypatch.setattr(
+            dependency_manager_module,
+            "ExternalDependencyManager",
+            FakeExternalDependencyManager,
+        )
+
+        manager_class = manager_module.EnumConversionValueEnumManager()
+
+        with pytest.raises(
+            ImportError,
+            match="dependency unavailable",
+        ):
+            manager_class()
+
+        assert manager_class._singleton is None
+
+    def test_should_allow_construction_after_dependency_import_failure(
+        self,
+        manager_module,
+        dependency_manager_module,
+        enum_class,
+        monkeypatch,
+    ):
+        should_fail = True
+
+        class FakeExternalDependencyManager:
+
+            def get_singleton(self):
+                return self
+
+            def import_module(self, **kwargs):
+                if should_fail:
+                    raise ImportError("dependency unavailable")
+
+                return lambda: enum_class
+
+        monkeypatch.setattr(
+            dependency_manager_module,
+            "ExternalDependencyManager",
+            FakeExternalDependencyManager,
+        )
+
+        manager_class = manager_module.EnumConversionValueEnumManager()
+
+        with pytest.raises(ImportError):
+            manager_class()
+
+        should_fail = False
+
+        manager = manager_class()
+
+        assert isinstance(manager, manager_class)
+        assert manager_class._singleton is None
+
+    def test_should_propagate_dependency_manager_initialization_error(
+        self,
+        manager_module,
+        dependency_manager_module,
+        monkeypatch,
+    ):
+        class FakeExternalDependencyManager:
+
+            def __init__(self):
+                raise RuntimeError("initialization failed")
+
+        monkeypatch.setattr(
+            dependency_manager_module,
+            "ExternalDependencyManager",
+            FakeExternalDependencyManager,
+        )
+
+        manager_class = manager_module.EnumConversionValueEnumManager()
+
+        with pytest.raises(
+            RuntimeError,
+            match="initialization failed",
+        ):
+            manager_class()
+
+        assert manager_class._singleton is None

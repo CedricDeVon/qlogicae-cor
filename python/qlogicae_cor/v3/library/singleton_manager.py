@@ -54,8 +54,8 @@ def _allocate():
 
         @classmethod
         def setup(cls, **kwargs):
-            if not kwargs:
-                return False
+            if not isinstance(kwargs, (dict)) or not kwargs:
+                raise ValueError("'kwargs' must be a non-empty dictionary")
 
             return True
 

@@ -122,8 +122,9 @@ class TestAsynchronousManagerAllocation:
 
 
 class TestAsynchronousManagerSetup:
-    def test_should_return_false_without_arguments(self, manager):
-        assert manager.setup() is False
+    def test_should_throw_without_arguments(self, manager):
+        with pytest.raises(ValueError):
+            manager.setup()
 
     @pytest.mark.parametrize(
         "kwargs",
@@ -135,7 +136,7 @@ class TestAsynchronousManagerSetup:
             {"workers": 0},
         ],
     )
-    def test_should_return_true_with_arguments(self, manager, kwargs):
+    def test_should_return_true_with_arguments(self, manager, kwargs):        
         assert manager.setup(**kwargs) is True
 
     def test_should_accept_multiple_arguments(self, manager):

@@ -85,8 +85,8 @@ def _allocate():
             return True
 
         def setup(self, **kwargs):
-            if not kwargs:
-                return False
+            if not isinstance(kwargs, (dict)) or not kwargs:
+                raise ValueError("'kwargs' must be a non-empty dictionary")
 
             return True
 

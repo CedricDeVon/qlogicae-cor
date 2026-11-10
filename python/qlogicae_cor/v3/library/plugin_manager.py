@@ -194,6 +194,9 @@ def _allocate():
             options,
             targets
         ):
+            if not isinstance(options, (dict)):
+                raise ValueError("'options' must be a dictionary")
+
             if not isinstance(targets, (tuple, list)) or not targets:
                 raise ValueError("'targets' must either be a non-empty tuple or list")
 

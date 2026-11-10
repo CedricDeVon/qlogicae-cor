@@ -7,12 +7,14 @@ import uuid
 import pytest
 
 
-MODULE_UNDER_TEST = "qlogicae_cor.v3.library.external_dependency_manager"
+from qlogicae_cor.v3.library import external_dependency_manager
 
 
 @pytest.fixture(scope="module")
 def module_under_test():
-    return importlib.import_module(MODULE_UNDER_TEST)
+    return (
+        external_dependency_manager
+    )
 
 
 @pytest.fixture

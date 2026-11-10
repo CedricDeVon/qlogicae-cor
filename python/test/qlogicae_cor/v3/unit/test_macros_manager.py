@@ -868,7 +868,8 @@ class TestMacrosManager:
         self,
         manager,
     ) -> None:
-        assert manager.setup() is False
+        with pytest.raises(ValueError):
+            manager.setup()
 
     def test_handle_setup_should_return_true_when_kwargs_are_provided(
         self,
@@ -1467,7 +1468,8 @@ class TestMacrosManager:
         self,
         manager,
     ) -> None:
-        assert manager.setup() is False
+        with pytest.raises(ValueError):
+            manager.setup()
 
     def test_setup_should_return_true_with_kwargs(
         self,
