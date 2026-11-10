@@ -13,6 +13,10 @@
   <div style="margin: 32px 64px;">
 
 <!-- Static Markdown Badges -->
+[![Python - Versions](https://img.shields.io/badge/Python-3.12|%933.13|%933.14-blue?logo=python&logoColor=gold)](https://www.python.org/)
+[![JavaScript - Versions](https://img.shields.io/badge/JavaScript-Recent-yellow?logo=javascript&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+[![TypeScript - Versions](https://img.shields.io/badge/TypeScript-Recent-blue?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Rust - Versions](https://img.shields.io/badge/Rust-Recent-orange?logo=rust&logoColor=white)](https://www.rust-lang.org/)
 ![License - Name](https://img.shields.io/badge/License-MIT-red)
 
 <!-- Dynamic Markdown Badges -->
@@ -50,12 +54,12 @@
             </a>
         </li>
         <li>
-            <a href=./documentation/index.md">
+            <a href="./documentation/index.md">
                 Extended Documentation
             </a>
         </li>
     </ul>
-    <li>
+    <!-- <li>
 		<a href="#usage">
 			Usage
 		</a>
@@ -76,7 +80,7 @@
 				</a>
 			</li>
 		</ul>
-    </li>
+    </li> -->
     <li>
 		<a href="#legalities">
 			Legalities
@@ -101,21 +105,58 @@
   	🧾 Description
 </h3>
 <p style="font-style:italic">
-  	[insert quote]
+  	Why would a chef reject his own dishes?
 </p>
 <p>
-  	[...]
+  	The QLogicae Cor is a software library, containing reusable and integration-safe features for QLogicae applications.
 </p>
 <h3 id="about-core-features">
   	⚙️ Core Features
 </h3>
 <p>
-  	More can be added, eventually. What this project offers now is as follows:
+  	More will be added, eventually. What this project offers now are as follows:
 </p>
 <ul>
 	<li>
 		<p>
-			[...]
+			Reusable and trusted features known to be, or anticipated to be, utilized and integrated within current and future QLogicae applications of their respective platforms and programming languages.
+		</p>
+	</li>
+	<li>
+		<p>
+			Available across multiple programming languages:
+		</p>
+		<ul>
+			<li>
+				<p>
+					Python
+				</p>
+			</li>
+			<li>
+				<p>
+					JavaScript
+				</p>
+			</li>
+			<li>
+				<p>
+					TypeScript
+				</p>
+			</li>
+			<li>
+				<p>
+					Rust
+				</p>
+			</li>
+			<li>
+				<p>
+					And more to come!
+				</p>
+			</li>
+		</ul>
+	</li>
+	<li>
+		<p>
+			Minimalistic external dependency usage strategy. Prioritizes the utilization of internal built-in dependencies over external 3rd party packages, libraries, frameworks, and others.
 		</p>
 	</li>
 </ul>
@@ -128,7 +169,7 @@
 
 </br>
 
-
+<!-- 
 
 <h2 id="usage">
   	🧑‍💻 Usage
@@ -172,7 +213,7 @@
   	[...]
 </p>
 </br>
-
+ -->
 
 
 <h2 id="legalities">

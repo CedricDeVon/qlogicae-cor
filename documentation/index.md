@@ -62,6 +62,7 @@
 <table style="width: 100%;">
     <thead>
         <tr>
+            <th style="text-align: left">Status</th>
             <th style="text-align: left">Name</th>
             <th style="text-align: left">Date</th>
             <th style="text-align: left">Summary</th>
@@ -70,6 +71,32 @@
     </thead>
     <tbody>
         <tr>
+            <td style="text-align: left">⌛ Developing</td>
+            <td style="text-align: left">python-3.3.0</td>
+            <td style="text-align: left">2026-11-XX</td>
+            <td style="text-align: left">Initial release of the cli api</td>
+            <td style="text-align: left"></td>
+        </tr>
+        <tr>
+            <td style="text-align: left">🔥 Latest</td>
+            <td style="text-align: left">python-3.2.1</td>
+            <td style="text-align: left">2026-11-10</td>
+            <td style="text-align: left">Prototypical cli api</td>
+            <td style="text-align: left"></td>
+        </tr>
+        <tr>
+            <td style="text-align: left">🚀 Initial Release</td>
+            <td style="text-align: left">python-2.2.1</td>
+            <td style="text-align: left">2026-11-10</td>
+            <td style="text-align: left">Initial public and stable release</td>
+            <td style="text-align: left"></td>
+        </tr>
+        <tr>
+            <td style="text-align: left">🧪 Pre-release</td>
+            <td style="text-align: left">< python-2.2.1</td>
+            <td style="text-align: left">< 2026-06-XX</td>
+            <td style="text-align: left">Pre-release deployments</td>
+            <td style="text-align: left"></td>
         </tr>
     </tbody>
 </table>
