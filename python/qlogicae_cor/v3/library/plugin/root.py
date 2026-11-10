@@ -78,6 +78,8 @@ def export():
             "callbacks": {
                 "on_pre_setup": on_pre_setup,
                 "on_post_setup": on_post_setup,
+                "on_pre_run": on_pre_run,
+                "on_post_run": on_post_run,
             },
         },
         # "database": {

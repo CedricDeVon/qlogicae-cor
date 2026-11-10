@@ -107,6 +107,10 @@ def _allocate():
                     )
                 )
 
+            # print(
+            #     plugin_exports
+            # )
+
             result = True
             result = (
                 self.setup_logs(
@@ -145,7 +149,9 @@ def _allocate():
                 )
 
             result = (
-                self.run_command_parser()
+                self.run_command_parser(
+                    plugin_exports
+                )
             ) and result
 
             return (
@@ -230,11 +236,13 @@ def _allocate():
 
             return result
 
-        def run_command_parser(self):
+        def run_command_parser(self, plugin_exports):
             result = (
                 _CliCommandManager()
                     .get_singleton()
-                    .run_parser()
+                    .run_parser(
+                        plugin_exports
+                    )
 
             )
 
@@ -257,13 +265,14 @@ def CliAppManager():
 
 
 
-# CliAppManager().get_singleton().run(
-#     plugin={
-#         "target_filesystem_paths": (
-#             "./qlogicae_cor/v3/library/plugin",
-#         ),
-#         "is_recursive": True,
-#         "modules": (),
-#         "raw_data": (),
-#     },
-# )
+CliAppManager().get_singleton().run(
+    plugin={
+        "target_filesystem_paths": (
+            "./qlogicae_cor/v3/library/plugin",
+        ),
+        "is_recursive": True,
+        "imported_modules": (),
+        "raw_export_data": (),
+        # "initial_export_data": {},
+    },
+)

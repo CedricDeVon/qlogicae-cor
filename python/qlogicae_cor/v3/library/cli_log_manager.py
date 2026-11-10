@@ -2,7 +2,6 @@ __all__ = (
     "CliLogManager",
 )
 
-_ObjectMergeManager = None
 _LogOptions = None
 _CliLogManager = None
 _FileLogManager = None
@@ -16,9 +15,7 @@ def _allocate():
     global _CliLogManager
 
     class __CliLogManager:
-        __slots__ = (
-            "_default_setup_options"
-        )
+        __slots__ = ()
 
         _singleton = None
 
@@ -31,19 +28,6 @@ def _allocate():
         def __exit__(self, exc_type, exc_value, traceback):
             self.shutdown()
 
-        @property
-        def default_setup_options(self):
-            return self._default_setup_options
-
-        @default_setup_options.setter
-        def default_setup_options(self, value):
-            if not isinstance(value, (dict)):
-                raise ValueError(
-                    "'value' must be a dictionary"
-                )
-
-            self._default_setup_options = value
-
         @classmethod
         def get_singleton(cls):
             if cls._singleton is None:
@@ -53,7 +37,6 @@ def _allocate():
 
         def construct(self):
             global _CliPluginManager
-            global _ObjectMergeManager
             global _LogOptions
             global _FileLogManager
             global _ConsoleLogManager
@@ -96,49 +79,6 @@ def _allocate():
                     is_member_callable=True,
                 )
             )
-            _ObjectMergeManager = (
-                _ExternalDependencyManager().import_module(
-                    path=".object_merge_manager",
-                    package="qlogicae_cor.v3.library",
-                    member="ObjectMergeManager",
-                    is_member_callable=True,
-                )
-            )
-
-            self._default_setup_options = {
-                "is_enabled": False,
-                "file": {
-                    "options": {
-                        "is_enabled": False,
-                        "is_verbose_enabled": True,
-                        "log_level": 10,
-                        "stack_level": 3,
-                        "target_filesystem_paths": [
-                            "logs.log"
-                        ],
-                    },
-                    "callbacks": {
-                        "on_pre_setup": None,
-                        "on_post_setup": None,
-                    },
-                },
-                "console": {
-                    "options": {
-                        "is_enabled": False,
-                        "is_verbose_enabled": True,
-                        "log_level": 10,
-                        "stack_level": 3,
-                    },
-                    "callbacks": {
-                        "on_pre_setup": None,
-                        "on_post_setup": None,
-                    },
-                },
-                "callbacks": {
-                    "on_pre_setup": None,
-                    "on_post_setup": None,
-                },
-            }
 
             return True
 
@@ -160,11 +100,6 @@ def _allocate():
                     "must be a dictinoary"
                 )
 
-            log_data = (
-                self.apply_setup_options(
-                    log_data
-                )
-            )
             log_is_enabled = (
                 log_data.get(
                     "is_enabled",
@@ -332,23 +267,6 @@ def _allocate():
                     log_data_callback_on_post_setup()
 
             return result
-
-        def apply_setup_options(self, options):
-            if not isinstance(options, (dict)):
-                raise ValueError(
-                    "'options' must be a dictionary"
-                )
-
-            options = (
-                _ObjectMergeManager()
-                    .get_singleton()
-                    .deep_merge(
-                        self._default_setup_options,
-                        options,
-                    )
-            )
-
-            return options
 
 
     _CliLogManager = __CliLogManager

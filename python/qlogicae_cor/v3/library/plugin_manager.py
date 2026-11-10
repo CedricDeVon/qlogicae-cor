@@ -155,11 +155,11 @@ def _allocate():
             is_recursive = (
                 options.get("is_recursive", True)
             )
-            modules = (
-                options.get("modules", tuple()) or tuple()
+            imported_modules = (
+                options.get("imported_modules", tuple()) or tuple()
             )
 
-            imported_modules = tuple(
+            output_imported_modules = tuple(
                 _PythonModuleManager()
                     .get_singleton()
                     .read_imported_modules(
@@ -169,7 +169,7 @@ def _allocate():
             )
 
             return (
-                imported_modules + modules
+                imported_modules + output_imported_modules
             )
 
         def read_raw_module_exports(
@@ -204,15 +204,18 @@ def _allocate():
                 _ObjectMergeManager().get_singleton()
             )
 
-            raw_data = (
-                options.get("raw_data", tuple()) or tuple()
+            raw_export_data = (
+                options.get("raw_export_data", tuple()) or tuple()
+            )
+            initial_export_data = (
+                options.get("initial_export_data", {}) or {}
             )
 
             targets = (
-                tuple(targets) + raw_data
+                tuple(targets) + raw_export_data
             )
 
-            module_exports = {}
+            module_exports = initial_export_data
             for target in targets:
                 if not isinstance(target, (dict)) or not target:
                     raise ValueError("'target' must be a non-empty dictionary")

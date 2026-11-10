@@ -4,8 +4,6 @@ __all__ = (
 
 _sys = None
 _argparse = None
-_ObjectMergeManager = None
-_CliPluginManager = None
 _CliCommandManager = None
 _ExternalDependencyManager = None
 
@@ -16,7 +14,6 @@ def _allocate():
 
     class __CliCommandManager:
         __slots__ = (
-            "_default_setup_options",
             "_parser",
             "_commands",
             "_command_handler",
@@ -34,19 +31,6 @@ def _allocate():
         def __exit__(self, exc_type, exc_value, traceback):
             self.shutdown()
 
-        @property
-        def default_setup_options(self):
-            return self._default_setup_options
-
-        @default_setup_options.setter
-        def default_setup_options(self, value):
-            if not isinstance(value, (dict)):
-                raise ValueError(
-                    "'value' must be a dictionary"
-                )
-
-            self._default_setup_options = value
-
         @classmethod
         def get_singleton(cls):
             if cls._singleton is None:
@@ -57,8 +41,6 @@ def _allocate():
         def construct(self):
             global _sys
             global _argparse
-            global _CliPluginManager
-            global _ObjectMergeManager
             global _ExternalDependencyManager
 
             from .external_dependency_manager import ExternalDependencyManager
@@ -76,72 +58,13 @@ def _allocate():
                     path="argparse",
                 )
             )
-            _CliPluginManager = (
-                _ExternalDependencyManager().import_module(
-                    path=".cli_plugin_manager",
-                    package="qlogicae_cor.v3.library",
-                    member="CliPluginManager",
-                    is_member_callable=True,
-                )
-            )
-            _ObjectMergeManager = (
-                _ExternalDependencyManager().import_module(
-                    path=".object_merge_manager",
-                    package="qlogicae_cor.v3.library",
-                    member="ObjectMergeManager",
-                    is_member_callable=True,
-                )
-            )
 
             self._parser = None
             self._commands = None
             self._command_handler = None
             self._parsed_arguments = None
-            self._default_setup_options = {
-                "options": {
-                    "args": (),
-                    "kwargs": {
-                        "prog": "name",
-                        "description": "command description",
-                        "add_help": True,
-                        "allow_abbrev": False,
-                    },
-                    "commands": [],
-                    "subparsers": {
-                        "args": (),
-                        "kwargs": {
-                            "dest": "command",
-                            "required": True,
-                            "title": "commands",
-                            "description": None,
-                            "metavar": "",
-                        },
-                    },
-                },
-                "callbacks": {
-                    "on_pre_setup": None,
-                    "on_post_setup": None,
-                },
-            }
 
             return True
-
-        def apply_setup_options(self, options):
-            if not isinstance(options, (dict)):
-                raise ValueError(
-                    "'options' must be a dictionary"
-                )
-
-            options = (
-                _ObjectMergeManager()
-                    .get_singleton()
-                    .deep_merge(
-                        self._default_setup_options,
-                        options,
-                    )
-            )
-
-            return options
 
         def setup(self, **kwargs):
             if not isinstance(kwargs, (dict)):
@@ -160,12 +83,6 @@ def _allocate():
                     "plugin export property 'command' "
                     "must be a dictinoary"
                 )
-
-            command_data = (
-                self.apply_setup_options(
-                    command_data
-                )
-            )
 
             options = (
                 command_data.get(
@@ -289,7 +206,55 @@ def _allocate():
 
             return True
 
-        def run_parser(self):
+        def run_parser(self, options):
+            if not isinstance(options, (dict)):
+                raise ValueError(
+                    "'options' must be a dictionary"
+                )
+
+            command_data = (
+                options.get(
+                    "command",
+                    {}
+                ) or {}
+            )
+            if not isinstance(command_data, (dict)):
+                raise ValueError(
+                    "plugin export property 'command' "
+                    "must be a dictinoary"
+                )
+
+            command_callbacks = (
+                command_data.get(
+                    "callbacks",
+                    {}
+                ) or {}
+            )
+            if not isinstance(command_callbacks, (dict)):
+                raise ValueError(
+                    "plugin export property 'command.callbacks' "
+                    "must be a dictinoary"
+                )
+
+            command_callback_on_pre_run = (
+                command_callbacks.get(
+                    "on_pre_run",
+                    None
+                )
+            )
+            command_callback_on_post_run = (
+                command_callbacks.get(
+                    "on_post_run",
+                    None
+                )
+            )
+
+            if (
+                command_callback_on_pre_run and
+                callable(command_callback_on_pre_run)
+            ):
+                command_callback_on_pre_run()
+
             result = True
             result = (
                 self.setup_parsed_arguments() and result
@@ -300,6 +265,13 @@ def _allocate():
             result = (
                 self.run_command_handler() and result
             )
+
+            if (
+                command_callback_on_post_run and
+                callable(command_callback_on_post_run)
+            ):
+                command_callback_on_post_run()
+
             return (
                 result
             )

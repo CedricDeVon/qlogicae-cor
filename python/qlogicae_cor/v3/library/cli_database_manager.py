@@ -2,7 +2,6 @@ __all__ = (
     "CliDatabaseManager",
 )
 
-_ObjectMergeManager = None
 _CliPluginManager = None
 _CliDatabaseManager = None
 _ExternalDependencyManager = None
@@ -15,9 +14,7 @@ def _allocate():
     global _CliDatabaseManager
 
     class __CliDatabaseManager:
-        __slots__ = (
-            "_default_setup_options"
-        )
+        __slots__ = ()
 
         _singleton = None
 
@@ -51,7 +48,6 @@ def _allocate():
             return cls._singleton
 
         def construct(self):
-            global _ObjectMergeManager
             global _CliPluginManager
             global _ExternalDependencyManager
             global _ValueCacheStorageManager
@@ -86,50 +82,6 @@ def _allocate():
                     is_member_callable=True,
                 )
             )
-            _ObjectMergeManager = (
-                _ExternalDependencyManager().import_module(
-                    path=".object_merge_manager",
-                    package="qlogicae_cor.v3.library",
-                    member="ObjectMergeManager",
-                    is_member_callable=True,
-                )
-            )
-
-            self._default_setup_options = {
-                "is_enabled": False,
-                "value_cache": {
-                    "is_enabled": False,
-                    "options": {
-                        "values": {},
-                        "defaults": {}
-                    },
-                    "callbacks": {
-                        "on_pre_setup": None,
-                        "on_post_setup": None,
-                    },
-                },
-                "persistent_cache": {
-                    "is_enabled": False,
-                    "options": {
-                        "database_path": "persistent_cache.db",
-                        "create_missing": True,
-                        "lifespan_in_seconds": 0.0,
-                        "file_mode": 0o600,
-                        "key_encoding": "utf-8",
-                        "auto_remove_expired": True,
-                        "auto_remove_invalid": True,
-                        "sync_on_write": False,
-                    },
-                    "callbacks": {
-                        "on_pre_setup": None,
-                        "on_post_setup": None,
-                    },
-                },
-                "callbacks": {
-                    "on_pre_setup": None,
-                    "on_post_setup": None,
-                },
-            }
 
             return True
 
@@ -151,11 +103,6 @@ def _allocate():
                     "must be a dictinoary"
                 )
 
-            database_data = (
-                self.apply_setup_options(
-                    database_data
-                )
-            )
             database_is_enabled = (
                 database_data.get(
                     "is_enabled",
@@ -322,23 +269,6 @@ def _allocate():
                     database_callback_on_post_setup()
 
             return result
-
-        def apply_setup_options(self, options):
-            if not isinstance(options, (dict)):
-                raise ValueError(
-                    "'options' must be a non-empty dictionary"
-                )
-
-            options = (
-                _ObjectMergeManager()
-                    .get_singleton()
-                    .deep_merge(
-                        self._default_setup_options,
-                        options,
-                    )
-            )
-
-            return options
 
 
     _CliDatabaseManager = __CliDatabaseManager
