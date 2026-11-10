@@ -164,6 +164,96 @@ def _allocate():
 
             return True
 
+        def is_log_enabled(self, kwargs):
+            if not isinstance(kwargs, (dict)) or not kwargs:
+                raise ValueError("'kwargs' must be a non-empty dictionary")
+
+            log_data = (
+                kwargs.get(
+                    "log",
+                    {}
+                ) or {}
+            )
+            is_log_enabled = (
+                log_data.get(
+                    "is_enabled",
+                    False
+                )
+            )
+            is_console_log_enabled = (
+                ((log_data.get(
+                    "console",
+                    {}
+                ) or {}).get(
+                    "options",
+                    {}
+                ) or {}).get(
+                    "is_enabled",
+                    False
+                )
+            )
+            is_file_log_enabled = (
+                ((log_data.get(
+                    "file",
+                    {}
+                ) or {}).get(
+                    "options",
+                    {}
+                ) or {}).get(
+                    "is_enabled",
+                    False
+                )
+            )
+
+            return (
+                is_log_enabled or (
+                    is_console_log_enabled or
+                    is_file_log_enabled
+                )
+            )
+
+        def is_database_enabled(self, kwargs):
+            if not isinstance(kwargs, (dict)) or not kwargs:
+                raise ValueError("'kwargs' must be a non-empty dictionary")
+
+            database_data = (
+                kwargs.get(
+                    "database",
+                    {}
+                ) or {}
+            )
+            is_database_enabled = (
+                database_data.get(
+                    "is_enabled",
+                    False
+                )
+            )
+            is_value_cache_database_enabled = (
+                (database_data.get(
+                    "value_cache",
+                    {}
+                ) or {}).get(
+                    "is_enabled",
+                    False
+                )
+            )
+            is_persistent_cache_database_enabled = (
+                (database_data.get(
+                    "persistent_cache",
+                    {}
+                ) or {}).get(
+                    "is_enabled",
+                    False
+                )
+            )
+
+            return (
+                is_database_enabled or (
+                    is_value_cache_database_enabled or
+                    is_persistent_cache_database_enabled
+                )
+            )
+
         def setup(self, **kwargs):
             if not isinstance(kwargs, (dict)):
                 raise ValueError("'kwargs' must be a dictionary")

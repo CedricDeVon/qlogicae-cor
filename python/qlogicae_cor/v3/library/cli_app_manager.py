@@ -107,10 +107,6 @@ def _allocate():
                     )
                 )
 
-            # print(
-            #     plugin_exports
-            # )
-
             result = True
             result = (
                 self.setup_logs(
@@ -198,13 +194,25 @@ def _allocate():
             if not isinstance(plugin_exports, (dict)) or not plugin_exports:
                 raise ValueError("'plugin_exports' must be a non-empty dictionary")
 
-            result = (
-                _CliLogManager()
+            cli_plugin_manager = (
+                _CliPluginManager()
                     .get_singleton()
-                    .setup(
-                        **plugin_exports
-                    )
             )
+
+            result = True
+            if (
+                cli_plugin_manager
+                    .is_log_enabled(
+                        plugin_exports
+                    )
+            ):
+                result = (
+                    _CliLogManager()
+                        .get_singleton()
+                        .setup(
+                            **plugin_exports
+                        )
+                )
 
             return result
 
@@ -212,13 +220,25 @@ def _allocate():
             if not isinstance(plugin_exports, (dict)) or not plugin_exports:
                 raise ValueError("'plugin_exports' must be a non-empty dictionary")
 
-            result = (
-                _CliDatabaseManager()
+            cli_plugin_manager = (
+                _CliPluginManager()
                     .get_singleton()
-                    .setup(
-                        **plugin_exports
-                    )
             )
+
+            result = True
+            if (
+                cli_plugin_manager
+                    .is_database_enabled(
+                        plugin_exports
+                    )
+            ):
+                result = (
+                    _CliDatabaseManager()
+                        .get_singleton()
+                        .setup(
+                            **plugin_exports
+                        )
+                )
 
             return result
 
@@ -226,9 +246,13 @@ def _allocate():
             if not isinstance(plugin_exports, (dict)) or not plugin_exports:
                 raise ValueError("'plugin_exports' must be a non-empty dictionary")
 
-            result = (
+            cli_command_manager = (
                 _CliCommandManager()
                     .get_singleton()
+            )
+
+            result = (
+                cli_command_manager
                     .setup(
                         **plugin_exports
                     )
@@ -237,9 +261,16 @@ def _allocate():
             return result
 
         def run_command_parser(self, plugin_exports):
-            result = (
+            if not isinstance(plugin_exports, (dict)) or not plugin_exports:
+                raise ValueError("'plugin_exports' must be a non-empty dictionary")
+
+            cli_command_manager = (
                 _CliCommandManager()
                     .get_singleton()
+            )
+
+            result = (
+                cli_command_manager
                     .run_parser(
                         plugin_exports
                     )

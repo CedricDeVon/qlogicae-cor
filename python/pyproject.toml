@@ -1,6 +1,6 @@
 [project]
 name = "qlogicae-cor"
-version = "3.1.1"
+version = "3.2.0"
 description = "The core library for QLogicae projects"
 readme = { file = "README.md", content-type = "text/markdown" }
 requires-python = ">=3.12"
@@ -220,14 +220,7 @@ test-check-and-apply-lint = """
 """
 
 test-run-unit = """
-    pytest -vv \
-        --cov \
-        --cov-branch \
-        --cov-report=term-missing \
-        --cov-report=html:\"output/test/unit/html\" \
-        --cov-report=xml:\"output/test/unit/coverage.xml\" \
-        --cov-report=json:\"output/test/unit/coverage.json\" \
-        --junitxml=\"output/test/unit/junit.xml\" \
+    pytest -vv --cov --cov-branch --cov-report=term-missing --cov-report=html:\"output/test/unit/html\" --cov-report=xml:\"output/test/unit/coverage.xml\" --cov-report=json:\"output/test/unit/coverage.json\" --junitxml=\"output/test/unit/junit.xml\"
 """
 
 test-run-smoke = """
@@ -275,30 +268,15 @@ benchmark-view-memray-usage-import-and-allocate = """
 """
 
 benchmark-short-library-import-memory-usage = """
-    ./.venv/bin/python -m test.qlogicae_cor.v3.benchmark.tool \
-        qlogicae_cor.v3 \
-        --json-output output/benchmark/import-library-memory-usage.json \
-        --repetitions 10
+    ./.venv/bin/python -m test.qlogicae_cor.v3.benchmark.tool qlogicae_cor.v3 --json-output output/benchmark/import-library-memory-usage.json --repetitions 10
 """
 
 benchmark-long-experiment-import-memory-usage = """
-    ./.venv/bin/python -m test.qlogicae_cor.v3.benchmark.tool \
-        test.qlogicae_cor.v3.benchmark.memory.import.experiment.static_import \
-        test.qlogicae_cor.v3.benchmark.memory.import.experiment.old_dynamic_import \
-        test.qlogicae_cor.v3.benchmark.memory.import.experiment.typeless_with_static_class_import \
-        test.qlogicae_cor.v3.benchmark.memory.import.experiment.typeless_with_dynamic_class_import \
-        test.qlogicae_cor.v3.benchmark.memory.import.experiment.empty_package \
-        --json-output output/benchmark/import-experiment-memory-usage.json/ \
-        --repetitions 20
+    ./.venv/bin/python -m test.qlogicae_cor.v3.benchmark.tool test.qlogicae_cor.v3.benchmark.memory.import.experiment.static_import test.qlogicae_cor.v3.benchmark.memory.import.experiment.old_dynamic_import test.qlogicae_cor.v3.benchmark.memory.import.experiment.typeless_with_static_class_import test.qlogicae_cor.v3.benchmark.memory.import.experiment.typeless_with_dynamic_class_import test.qlogicae_cor.v3.benchmark.memory.import.experiment.empty_package --json-output output/benchmark/import-experiment-memory-usage.json/ --repetitions 20
 """
 
 benchmark-long-library-import-memory-usage = """
-    ./.venv/bin/python -m test.qlogicae_cor.v3.benchmark.tool \
-        qlogicae_cor.v1 \
-        qlogicae_cor.v2 \
-        qlogicae_cor.v3 \
-        --json-output output/benchmark/import-library-memory-usage.json \
-        --repetitions 20
+    ./.venv/bin/python -m test.qlogicae_cor.v3.benchmark.tool qlogicae_cor.v1 qlogicae_cor.v2 qlogicae_cor.v3 --json-output output/benchmark/import-library-memory-usage.json --repetitions 20
 """
 
 deploy-build-release = """
