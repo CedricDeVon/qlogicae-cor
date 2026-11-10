@@ -102,8 +102,6 @@ def _allocate():
                     for path in target_filesystem_paths
                 )
             )
-            if not folder_paths:
-                return tuple()
 
             modules = []
             imported_file_paths = set()

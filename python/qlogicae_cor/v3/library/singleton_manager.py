@@ -75,12 +75,3 @@ def SingletonManager():
         _allocate()
 
     return _SingletonManager
-
-
-# SingletonManager()
-# Refactor while following the format above.
-# Imports must be within the _handle_dynamic_import() method.
-# Remove all type annotations.
-# use 'is_allocated_during_object_construction'
-# PythonRuntimeUtilityManager must include _PythonRuntimeUtilityManager
-

@@ -231,13 +231,12 @@ def _allocate():
             return result
 
         def run_command_parser(self):
-            cli_command_manager = (
+            result = (
                 _CliCommandManager()
                     .get_singleton()
                     .run_parser()
 
             )
-            result = True
 
             return result
 
@@ -258,13 +257,13 @@ def CliAppManager():
 
 
 
-CliAppManager().get_singleton().run(
-    plugin={        
-        "target_filesystem_paths": (
-            "./qlogicae_cor/v3/library/plugin",
-        ),
-        "is_recursive": True,
-        "modules": (),
-        "raw_data": (),
-    },
-)
+# CliAppManager().get_singleton().run(
+#     plugin={
+#         "target_filesystem_paths": (
+#             "./qlogicae_cor/v3/library/plugin",
+#         ),
+#         "is_recursive": True,
+#         "modules": (),
+#         "raw_data": (),
+#     },
+# )

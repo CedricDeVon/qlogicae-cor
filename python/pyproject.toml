@@ -39,6 +39,8 @@ dependencies = []
 dev = [
     "pytest",
     "pytest-cov",
+    "pytest-asyncio",
+    "pytest-timeout",
     "pybenchmark",
     "ruff",
     "mypy",
@@ -96,6 +98,10 @@ source = [
     "qlogicae_cor.v3.library.object_merge_manager",
     "qlogicae_cor.v3.library.value_cache_storage_manager",
     "qlogicae_cor.v3.library.external_dependency_manager",
+    "qlogicae_cor.v3.library.enum_conversion_value_enum_manager",
+    "qlogicae_cor.v3.library.python_module_manager",
+    "qlogicae_cor.v3.library.plugin_manager",
+    "qlogicae_cor.v3.library.asynchronous_manager",
 ]
 branch = true
 

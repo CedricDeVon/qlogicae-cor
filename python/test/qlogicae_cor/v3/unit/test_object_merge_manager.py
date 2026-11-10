@@ -401,6 +401,7 @@ class TestObjectMergeManager:
             ([1], [], []),
         ],
     )
+
     def test_handle_deep_merge_fragments_should_handle_edge_cases(
         self,
         manager,
@@ -410,154 +411,116 @@ class TestObjectMergeManager:
     ) -> None:
         assert manager.deep_merge_fragments(left, right) == expected
 
+    def test_handle_context_manager_should_return_manager_instance(
+        self,
+    ) -> None:
+        manager = ObjectMergeManager()()
 
-# from __future__ import annotations
+        with manager as result:
+            assert result is manager
 
-# from copy import deepcopy
+    def test_handle_context_manager_should_shutdown_manager_on_exit(
+        self,
+    ) -> None:
+        manager = ObjectMergeManager()()
 
-# import pytest
+        with manager as result:
+            assert result is manager
 
+    def test_handle_singleton_should_return_same_instance(
+        self,
+    ) -> None:
+        manager_class = ObjectMergeManager()
 
-# def handle_deep_merging_recursive(
-#     left: Any,
-#     right: Any,
-# ) -> Any:
-#     if left is None:
-#         return deepcopy(right)
+        first = manager_class.get_singleton()
+        second = manager_class.get_singleton()
 
-#     if right is None:
-#         return deepcopy(left)
+        assert first is second
 
-#     if isinstance(left, dict) and isinstance(right, dict):
-#         result = deepcopy(left)
+    def test_handle_singleton_should_initialize_instance_when_uninitialized(
+        self,
+    ) -> None:
+        manager_class = ObjectMergeManager()
+        manager_class._singleton = None
 
-#         for key, value in right.items():
-#             if key in result:
-#                 result[key] = handle_deep_merging_recursive(
-#                     result[key],
-#                     value,
-#                 )
-#             else:
-#                 result[key] = deepcopy(value)
+        manager = manager_class.get_singleton()
 
-#         return result
+        assert isinstance(manager, manager_class)
+        assert manager_class._singleton is manager
 
-#     if isinstance(left, list) and isinstance(right, list):
-#         return deepcopy(left) + deepcopy(right)
+    def test_handle_setup_should_return_false_when_kwargs_are_empty(
+        self,
+        manager,
+    ) -> None:
+        assert manager.setup() is False
 
-#     return deepcopy(right)
+    def test_handle_setup_should_return_true_when_kwargs_are_provided(
+        self,
+        manager,
+    ) -> None:
+        assert manager.setup(value=1) is True
 
+    def test_handle_shutdown_should_return_true(
+        self,
+        manager,
+    ) -> None:
+        assert manager.shutdown() is True
 
-# def handle_deep_merging_iterative(
-#     left: Any,
-#     right: Any,
-# ) -> Any:
-#     if left is None:
-#         return deepcopy(right)
+    def test_handle_deep_merge_fragments_should_replace_empty_left_list(
+        self,
+        manager,
+    ) -> None:
+        assert manager.deep_merge_fragments([], [1, 2]) == [1, 2]
 
-#     if right is None:
-#         return deepcopy(left)
+    def test_handle_deep_merge_fragments_should_replace_non_empty_left_list_with_empty_right_list(
+        self,
+        manager,
+    ) -> None:
+        assert manager.deep_merge_fragments([1, 2], []) == []
 
-#     if not (isinstance(left, dict) and isinstance(right, dict)):
-#         if isinstance(left, list) and isinstance(right, list):
-#             return deepcopy(left) + deepcopy(right)
+    def test_handle_deep_merge_fragments_should_preserve_nested_right_list(
+        self,
+        manager,
+    ) -> None:
+        left = {
+            "a": {
+                "b": [1, 2],
+            },
+        }
 
-#         return deepcopy(right)
+        right = {
+            "a": {
+                "b": [3, 4],
+            },
+        }
 
-#     result = deepcopy(left)
+        result = manager.deep_merge_fragments(left, right)
 
-#     stack: list[tuple[dict[str, Any], dict[str, Any]]] = [
-#         (
-#             result,
-#             right,
-#         ),
-#     ]
+        assert result == {
+            "a": {
+                "b": [3, 4],
+            },
+        }
 
-#     while stack:
-#         current_left, current_right = stack.pop()
+    def test_handle_deep_merge_fragments_should_deepcopy_replaced_nested_list(
+        self,
+        manager,
+    ) -> None:
+        left = {
+            "a": [1, 2],
+        }
 
-#         for key, right_value in current_right.items():
-#             if key not in current_left:
-#                 current_left[key] = deepcopy(right_value)
-#                 continue
+        right = {
+            "a": [3, 4],
+        }
 
-#             left_value = current_left[key]
+        result = manager.deep_merge_fragments(left, right)
 
-#             if isinstance(left_value, dict) and isinstance(right_value, dict):
-#                 stack.append(
-#                     (
-#                         left_value,
-#                         right_value,
-#                     ),
-#                 )
+        result["a"].append(5)
 
-#             elif isinstance(left_value, list) and isinstance(right_value, list):
-#                 current_left[key] = deepcopy(left_value) + deepcopy(right_value)
-
-#             else:
-#                 current_left[key] = deepcopy(
-#                     right_value,
-#                 )
-
-#     return result
-
-
-# def make_nested(
-#     depth: int,
-#     width: int,
-# ):
-#     if depth == 0:
-#         return {f"item{i}": list(range(20)) for i in range(width)}
-
-#     return {
-#         f"level{i}": make_nested(
-#             depth - 1,
-#             width,
-#         )
-#         for i in range(width)
-#     }
-
-
-# @pytest.fixture(scope="session")
-# def large_merge_data():
-#     left = make_nested(
-#         depth=5,
-#         width=5,
-#     )
-
-#     right = make_nested(
-#         depth=5,
-#         width=5,
-#     )
-
-#     right["new"] = {
-#         "hello": "world",
-#     }
-
-#     return left, right
+        assert left["a"] == [1, 2]
+        assert right["a"] == [3, 4]
+        assert result["a"] is not right["a"]
 
 
-# def test_recursive_large(
-#     benchmark,
-#     large_merge_data,
-# ):
-#     left, right = large_merge_data
 
-#     benchmark(
-#         handle_deep_merging_recursive,
-#         deepcopy(left),
-#         deepcopy(right),
-#     )
-
-
-# def test_iterative_large(
-#     benchmark,
-#     large_merge_data,
-# ):
-#     left, right = large_merge_data
-
-#     benchmark(
-#         handle_deep_merging_iterative,
-#         deepcopy(left),
-#         deepcopy(right),
-#     )
