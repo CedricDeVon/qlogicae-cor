@@ -181,7 +181,7 @@ def _allocate():
             plugin_manager.setup(
                 **kwargs
             )
-            
+
             return True
 
         def shutdown(self):

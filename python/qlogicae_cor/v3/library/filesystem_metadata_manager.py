@@ -71,6 +71,9 @@ def _allocate():
             self,
             filesystem_path,
         ):
+            if not isinstance(filesystem_path, (str, _pathlib().Path)):
+                raise ValueError("'filesystem_path' must either be a string or Path")
+
             stat = _pathlib().Path(filesystem_path).stat()
 
             return _FilesystemMetadata()(

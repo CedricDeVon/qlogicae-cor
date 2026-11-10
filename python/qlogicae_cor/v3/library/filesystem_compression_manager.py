@@ -68,6 +68,9 @@ def _allocate():
             self,
             value,
         ):
+            if not isinstance(value, (str)):
+                raise ValueError("'value' must be a string")
+
             match value.lower():
                 case "store" | "stored" | "none":
                     result = _zipfile().ZIP_STORED
@@ -92,6 +95,15 @@ def _allocate():
             destination_path,
             overwrite=False,
         ):
+            if not isinstance(archive_path, (str, _pathlib().Path)):
+                raise ValueError("'archive_path' must either be a string or Path")
+
+            if not isinstance(destination_path, (str, _pathlib().Path)):
+                raise ValueError("'destination_path' must either be a string or Path")
+
+            if not isinstance(overwrite, (bool)):
+                raise ValueError("'overwrite' must be a boolean")
+
             fs_archive_path = _pathlib().Path(archive_path)
             fs_destination_path = _pathlib().Path(
                 destination_path,

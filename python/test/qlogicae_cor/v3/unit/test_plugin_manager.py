@@ -133,7 +133,8 @@ class TestPluginManagerLifecycle:
 
         assert result is None
         shutdown.assert_called_once_with()
-        
+
+
 class TestPluginManagerProperties:
     def test_should_read_module_exports(self, manager):
         assert manager.module_exports == {}
@@ -185,9 +186,7 @@ class TestPluginManagerWrites:
         ],
     )
     def test_should_reject_invalid_module_exports(self, manager, value):
-        with pytest.raises(
-            ValueError,
-        ):
+        with pytest.raises(ValueError):
             manager.write_module_exports(value)
 
     def test_should_remove_module_exports(self, manager):
@@ -198,6 +197,7 @@ class TestPluginManagerWrites:
 
     def test_should_read_module_exports(self, manager):
         expected = {"first": 1}
+
         manager.write_module_exports(expected)
 
         assert manager.read_module_exports() is expected
@@ -213,27 +213,35 @@ class TestPluginManagerImportedModules:
         manager,
         python_module_manager,
     ):
-        imported_modules = (ModuleType("first"), ModuleType("second"))
+        explicit = (
+            ModuleType("first"),
+            ModuleType("second"),
+        )
+        discovered = (
+            ModuleType("third"),
+        )
+
         python_module_manager.read_imported_modules.return_value = (
-            imported_modules
+            discovered
         )
 
         result = manager.read_imported_modules(
-            {"target_filesystem_paths": ("plugins",)}
+            {
+                "target_filesystem_paths": ("plugins",),
+                "imported_modules": explicit,
+            }
         )
 
-        assert result == imported_modules
-        python_module_manager.read_imported_modules.assert_called_once_with(
-            ("plugins",),
-            True,
-        )
+        assert result == explicit + discovered
 
     def test_should_use_recursive_discovery_by_default(
         self,
         manager,
         python_module_manager,
     ):
-        manager.read_imported_modules({"target_filesystem_paths": ("plugins",)})
+        manager.read_imported_modules(
+            {"target_filesystem_paths": ("plugins",)}
+        )
 
         python_module_manager.read_imported_modules.assert_called_once_with(
             ("plugins",),
@@ -262,29 +270,32 @@ class TestPluginManagerImportedModules:
         manager,
         python_module_manager,
     ):
-        manager.read_imported_modules({"modules": ()})
+        manager.read_imported_modules(
+            {"imported_modules": ()}
+        )
 
         python_module_manager.read_imported_modules.assert_called_once_with(
             (),
             True,
         )
 
-    def test_should_append_explicit_modules(
+    def test_should_prepend_explicit_modules(
         self,
         manager,
         python_module_manager,
     ):
-        discovered = ModuleType("discovered")
         explicit = ModuleType("explicit")
+        discovered = ModuleType("discovered")
+
         python_module_manager.read_imported_modules.return_value = (
             discovered,
         )
 
         result = manager.read_imported_modules(
-            {"modules": (explicit,)}
+            {"imported_modules": (explicit,)}
         )
 
-        assert result == (discovered, explicit)
+        assert result == (explicit, discovered)
 
     def test_should_return_explicit_modules_without_discovery_results(
         self,
@@ -294,7 +305,7 @@ class TestPluginManagerImportedModules:
         explicit = ModuleType("explicit")
 
         result = manager.read_imported_modules(
-            {"modules": (explicit,)}
+            {"imported_modules": (explicit,)}
         )
 
         assert result == (explicit,)
@@ -324,9 +335,7 @@ class TestPluginManagerImportedModules:
         ],
     )
     def test_should_reject_invalid_options(self, manager, options):
-        with pytest.raises(
-            ValueError,
-        ):
+        with pytest.raises(ValueError):
             manager.read_imported_modules(options)
 
 
@@ -338,12 +347,11 @@ class TestPluginManagerRawExports:
     ):
         module = plugin_module_factory({"first": 1})
 
-        assert manager.read_plugin_module_export(module) == {"first": 1}
+        assert manager.read_plugin_module_export(module) == {
+            "first": 1
+        }
 
-    def test_should_call_module_export_once(
-        self,
-        manager,
-    ):
+    def test_should_call_module_export_once(self, manager):
         module = ModuleType("test_plugin")
         module.export = MagicMock(return_value={"first": 1})
 
@@ -382,17 +390,16 @@ class TestPluginManagerRawExports:
             {"second": 2},
         )
 
-    def test_should_reject_empty_targets(self, manager):
-        with pytest.raises(
-            ValueError,
-        ):
-            manager.read_raw_module_exports(())
-
-    def test_should_reject_empty_target_list(self, manager):
-        with pytest.raises(
-            ValueError,
-        ):
-            manager.read_raw_module_exports([])
+    @pytest.mark.parametrize(
+        "targets",
+        [
+            (),
+            [],
+        ],
+    )
+    def test_should_reject_empty_targets(self, manager, targets):
+        with pytest.raises(ValueError):
+            manager.read_raw_module_exports(targets)
 
     @pytest.mark.parametrize(
         "target",
@@ -408,9 +415,7 @@ class TestPluginManagerRawExports:
         ],
     )
     def test_should_reject_invalid_plugin_module(self, manager, target):
-        with pytest.raises(
-            ValueError,
-        ):
+        with pytest.raises(ValueError):
             manager.read_plugin_module_export(target)
 
     def test_should_propagate_export_exception(self, manager):
@@ -514,7 +519,7 @@ class TestPluginManagerMerge:
         object_merge_manager,
     ):
         result = manager.setup_merged_raw_module_exports(
-            {"raw_data": ({"second": 2},)},
+            {"raw_export_data": ({"second": 2},)},
             ({"first": 1},),
         )
 
@@ -535,7 +540,7 @@ class TestPluginManagerMerge:
     ):
         result = manager.setup_merged_raw_module_exports(
             {
-                "raw_data": (
+                "raw_export_data": (
                     {"second": 2},
                     {"third": 3},
                 )
@@ -569,23 +574,25 @@ class TestPluginManagerMerge:
         object_merge_manager,
     ):
         result = manager.setup_merged_raw_module_exports(
-            {"raw_data": ()},
+            {"raw_export_data": ()},
             ({"first": 1},),
         )
 
         assert result == {"first": 1}
 
-    def test_should_reject_empty_targets(self, manager):
-        with pytest.raises(
-            ValueError,
-        ):
-            manager.setup_merged_raw_module_exports({}, ())
-
-    def test_should_reject_empty_target_list(self, manager):
-        with pytest.raises(
-            ValueError,
-        ):
-            manager.setup_merged_raw_module_exports({}, [])
+    @pytest.mark.parametrize(
+        "targets",
+        [
+            (),
+            [],
+        ],
+    )
+    def test_should_reject_empty_targets(self, manager, targets):
+        with pytest.raises(ValueError):
+            manager.setup_merged_raw_module_exports(
+                {},
+                targets,
+            )
 
     @pytest.mark.parametrize(
         "target",
@@ -601,9 +608,7 @@ class TestPluginManagerMerge:
         ],
     )
     def test_should_reject_invalid_merge_targets(self, manager, target):
-        with pytest.raises(
-            ValueError,
-        ):
+        with pytest.raises(ValueError):
             manager.setup_merged_raw_module_exports(
                 {},
                 (target,),
@@ -626,11 +631,9 @@ class TestPluginManagerMerge:
         manager,
         raw_data,
     ):
-        with pytest.raises(
-            ValueError,
-        ):
+        with pytest.raises(ValueError):
             manager.setup_merged_raw_module_exports(
-                {"raw_data": raw_data},
+                {"raw_export_data": raw_data},
                 ({"first": 1},),
             )
 
@@ -646,11 +649,8 @@ class TestPluginManagerMerge:
             object(),
         ],
     )
-
     def test_should_reject_invalid_options(self, manager, options):
-        with pytest.raises(
-            ValueError,
-        ):
+        with pytest.raises(ValueError):
             manager.setup_merged_raw_module_exports(
                 options,
                 ({"first": 1},),
@@ -724,7 +724,9 @@ class TestPluginManagerSetup:
         first = plugin_module_factory({"first": 1})
         second = plugin_module_factory({"second": 2})
 
-        result = manager.setup(modules=(first, second))
+        result = manager.setup(
+            imported_modules=(first, second)
+        )
 
         assert result is True
         assert manager.module_exports == {
@@ -767,14 +769,38 @@ class TestPluginManagerSetup:
         module = plugin_module_factory({"first": 1})
 
         result = manager.setup(
-            modules=(module,),
-            raw_data=({"second": 2},),
+            imported_modules=(module,),
+            raw_export_data=({"second": 2},),
         )
 
         assert result is True
         assert manager.module_exports == {
             "first": 1,
             "second": 2,
+        }
+
+    def test_should_setup_with_multiple_raw_data_entries(
+        self,
+        manager,
+        python_module_manager,
+        object_merge_manager,
+        plugin_module_factory,
+    ):
+        module = plugin_module_factory({"first": 1})
+
+        result = manager.setup(
+            imported_modules=(module,),
+            raw_export_data=(
+                {"second": 2},
+                {"third": 3},
+            ),
+        )
+
+        assert result is True
+        assert manager.module_exports == {
+            "first": 1,
+            "second": 2,
+            "third": 3,
         }
 
     def test_should_setup_with_only_raw_data_and_explicit_module(
@@ -787,8 +813,8 @@ class TestPluginManagerSetup:
         module = plugin_module_factory({"first": 1})
 
         manager.setup(
-            modules=(module,),
-            raw_data=(
+            imported_modules=(module,),
+            raw_export_data=(
                 {"second": 2},
                 {"third": 3},
             ),
@@ -811,7 +837,9 @@ class TestPluginManagerSetup:
 
         module = plugin_module_factory({"new": 2})
 
-        manager.setup(modules=(module,))
+        manager.setup(
+            imported_modules=(module,)
+        )
 
         assert manager.module_exports == {"new": 2}
 
@@ -821,12 +849,15 @@ class TestPluginManagerSetup:
         python_module_manager,
     ):
         manager.module_exports = {"existing": 1}
+
         python_module_manager.read_imported_modules.side_effect = (
             RuntimeError("discovery failure")
         )
 
         with pytest.raises(RuntimeError, match="discovery failure"):
-            manager.setup(target_filesystem_paths=("plugins",))
+            manager.setup(
+                target_filesystem_paths=("plugins",)
+            )
 
         assert manager.module_exports == {"existing": 1}
 
@@ -846,7 +877,9 @@ class TestPluginManagerSetup:
         module.export = export
 
         with pytest.raises(RuntimeError, match="export failure"):
-            manager.setup(modules=(module,))
+            manager.setup(
+                imported_modules=(module,)
+            )
 
         assert manager.module_exports == {"existing": 1}
 
@@ -858,6 +891,7 @@ class TestPluginManagerSetup:
         plugin_module_factory,
     ):
         manager.module_exports = {"existing": 1}
+
         object_merge_manager.deep_merge.side_effect = RuntimeError(
             "merge failure"
         )
@@ -865,14 +899,14 @@ class TestPluginManagerSetup:
         module = plugin_module_factory({"new": 2})
 
         with pytest.raises(RuntimeError, match="merge failure"):
-            manager.setup(modules=(module,))
+            manager.setup(
+                imported_modules=(module,)
+            )
 
         assert manager.module_exports == {"existing": 1}
 
     def test_should_reject_empty_setup_arguments(self, manager):
-        with pytest.raises(
-            ValueError,
-        ):
+        with pytest.raises(ValueError):
             manager.setup()
 
     def test_should_accept_nonempty_setup_options(
@@ -884,7 +918,9 @@ class TestPluginManagerSetup:
     ):
         module = plugin_module_factory({"first": 1})
 
-        assert manager.setup(modules=(module,)) is True
+        assert manager.setup(
+            imported_modules=(module,)
+        ) is True
 
     def test_should_propagate_invalid_raw_data(
         self,
@@ -895,13 +931,31 @@ class TestPluginManagerSetup:
     ):
         module = plugin_module_factory({"first": 1})
 
-        with pytest.raises(
-            ValueError,
-        ):
+        with pytest.raises(ValueError):
             manager.setup(
-                modules=(module,),
-                raw_data=({},),
+                imported_modules=(module,),
+                raw_export_data=({},),
             )
+
+    def test_should_accept_initial_export_data(
+        self,
+        manager,
+        python_module_manager,
+        object_merge_manager,
+        plugin_module_factory,
+    ):
+        module = plugin_module_factory({"plugin": 1})
+
+        result = manager.setup(
+            imported_modules=(module,),
+            initial_export_data={"initial": 2},
+        )
+
+        assert result is True
+        assert manager.module_exports == {
+            "initial": 2,
+            "plugin": 1,
+        }
 
 
 class TestPluginManagerStress:
@@ -920,7 +974,9 @@ class TestPluginManagerStress:
             }
             modules.append(module)
 
-        result = manager.setup(modules=tuple(modules))
+        result = manager.setup(
+            imported_modules=tuple(modules)
+        )
 
         assert result is True
         assert len(manager.module_exports) == 500
@@ -937,7 +993,10 @@ class TestPluginManagerStress:
             module = ModuleType(f"plugin_{index}")
             module.export = lambda index=index: {"value": index}
 
-            assert manager.setup(modules=(module,)) is True
+            assert manager.setup(
+                imported_modules=(module,)
+            ) is True
+
             assert manager.module_exports == {"value": index}
 
     def test_should_process_many_raw_data_entries(
@@ -946,13 +1005,14 @@ class TestPluginManagerStress:
         object_merge_manager,
     ):
         targets = ({"initial": 1},)
+
         raw_data = tuple(
             {f"key_{index}": index}
             for index in range(500)
         )
 
         result = manager.setup_merged_raw_module_exports(
-            {"raw_data": raw_data},
+            {"raw_export_data": raw_data},
             targets,
         )
 
@@ -996,7 +1056,10 @@ class TestPluginManagerConcurrency:
                 )
             )
 
-        assert all(result == {"value": 1} for result in results)
+        assert all(
+            result == {"value": 1}
+            for result in results
+        )
 
     def test_should_support_concurrent_export_writes(self, manager):
         def write_export(index):
@@ -1018,7 +1081,11 @@ class TestPluginManagerConcurrency:
     ):
         def construct_manager(index):
             instance = manager_class()
-            instance.write_module_exports({f"key_{index}": index})
+
+            instance.write_module_exports(
+                {f"key_{index}": index}
+            )
+
             return instance
 
         with ThreadPoolExecutor(max_workers=16) as executor:
@@ -1028,6 +1095,7 @@ class TestPluginManagerConcurrency:
 
         assert len(instances) == 100
         assert len({id(instance) for instance in instances}) == 100
+
         assert all(
             len(instance.module_exports) == 1
             for instance in instances
@@ -1047,7 +1115,7 @@ class TestPluginManagerAsyncCompatibility:
 
             return await asyncio.to_thread(
                 manager.setup,
-                modules=(module,),
+                imported_modules=(module,),
             )
 
         assert asyncio.run(run()) is True
@@ -1071,13 +1139,14 @@ class TestPluginManagerAsyncCompatibility:
     ):
         async def run(index):
             module = ModuleType(f"async_plugin_{index}")
+
             module.export = lambda index=index: {
                 f"plugin_{index}": index
             }
 
             return await asyncio.to_thread(
                 manager.setup,
-                modules=(module,),
+                imported_modules=(module,),
             )
 
         async def execute():

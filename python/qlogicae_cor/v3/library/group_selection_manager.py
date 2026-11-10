@@ -45,6 +45,12 @@ def _allocate():
             target,
             data,
         ):
+            if not target:
+                raise ValueError("'target' must be defined")
+
+            if not data:
+                raise ValueError("'data' must be defined")
+
             resolved = []
             visited = set()
             stack = [target]
@@ -77,3 +83,4 @@ def GroupSelectionManager():
 
 
 # GroupSelectionManager()
+
