@@ -204,7 +204,7 @@ def _allocate():
             return self._allocated_module
 
         def pre_allocate(self):
-            if self._is_pre_allocated:
+            if not self._allocated_module:
                 self.allocate()
 
             return self._allocated_module
@@ -421,6 +421,12 @@ def _allocate():
             return (
                 import_target_allocate
             )
+
+        def pre_load_modules(self):
+            for _key, import_target in self._import_targets.items():
+                import_target.pre_allocate()
+
+            return True
 
         def unload_modules(
             self,

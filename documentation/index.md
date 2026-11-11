@@ -70,18 +70,18 @@
         </tr>
     </thead>
     <tbody>
-        <tr>
+        <!-- <tr>
             <td style="text-align: left">⌛ Developing</td>
-            <td style="text-align: left">python-3.3.XX</td>
-            <td style="text-align: left">2026-11-XX</td>
-            <td style="text-align: left">Initial release of the cli api</td>
             <td style="text-align: left"></td>
-        </tr>
+            <td style="text-align: left"></td>
+            <td style="text-align: left"></td>
+            <td style="text-align: left"></td>
+        </tr> -->
         <tr>
             <td style="text-align: left">🔥 Latest</td>
-            <td style="text-align: left">python-3.2.XX</td>
+            <td style="text-align: left">python-3.3.0</td>
             <td style="text-align: left">2026-11-11</td>
-            <td style="text-align: left">Prototypical cli api</td>
+            <td style="text-align: left">CLI feature migration to 'qlogicae-cliq'</td>
             <td style="text-align: left"></td>
         </tr>
         <tr>

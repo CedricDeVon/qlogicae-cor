@@ -1,9 +1,4 @@
 from qlogicae_cor.v3.library.asynchronous_manager import AsynchronousManager
-from qlogicae_cor.v3.library.cli_app_manager import CliAppManager
-from qlogicae_cor.v3.library.cli_command_manager import CliCommandManager
-from qlogicae_cor.v3.library.cli_database_manager import CliDatabaseManager
-from qlogicae_cor.v3.library.cli_log_manager import CliLogManager
-from qlogicae_cor.v3.library.cli_plugin_manager import CliPluginManager
 from qlogicae_cor.v3.library.console_log_manager import ConsoleLogManager
 from qlogicae_cor.v3.library.enum_conversion_value import EnumConversionValue
 from qlogicae_cor.v3.library.enum_conversion_value_enum_manager import EnumConversionValueEnumManager
@@ -52,11 +47,6 @@ from qlogicae_cor.v3.library.python_module_manager import PythonModuleManager
 from qlogicae_cor.v3.library.external_dependency_manager import ExternalDependencyManager
 
 AsynchronousManager()
-CliAppManager()
-CliCommandManager()
-CliDatabaseManager()
-CliLogManager()
-CliPluginManager()
 ConsoleLogManager()
 EnumConversionValue()
 ExternalDependencyManager()

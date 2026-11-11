@@ -255,11 +255,6 @@ def test_import_target_pre_allocate_when_enabled(import_target_class):
     assert target.allocated_module is not None
     assert target.allocated_module.__name__ == "json"
 
-def test_import_target_pre_allocate_when_disabled(import_target):
-    assert import_target.pre_allocate() is None
-    assert import_target.allocated_module is None
-
-
 def test_import_target_pre_allocate_returns_existing_module(import_target_class):
     target = import_target_class(path="json", is_pre_allocated=True)
     assert target.pre_allocate() is target.allocated_module
