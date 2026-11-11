@@ -294,16 +294,3 @@ def CliAppManager():
 
     return _CliAppManager
 
-
-
-# CliAppManager().get_singleton().run(
-#     plugin={
-#         "target_filesystem_paths": (
-#             "./qlogicae_cor/v3/library/plugin",
-#         ),
-#         "is_recursive": True,
-#         "imported_modules": (),
-#         "raw_export_data": (),
-#         # "initial_export_data": {},
-#     },
-# )
