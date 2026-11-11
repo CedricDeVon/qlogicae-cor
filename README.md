@@ -13,10 +13,11 @@
   <div style="margin: 32px 64px;">
 
 <!-- Static Markdown Badges -->
-[![Python - Versions](https://img.shields.io/badge/Python-Active-blue?logo=python&logoColor=gold)](https://www.python.org/)
-[![JavaScript - Versions](https://img.shields.io/badge/JavaScript-Stale-yellow?logo=javascript&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
-[![TypeScript - Versions](https://img.shields.io/badge/TypeScript-Stale-blue?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Rust - Versions](https://img.shields.io/badge/Rust-Stale-orange?logo=rust&logoColor=white)](https://www.rust-lang.org/)
+[![Python - Status](https://img.shields.io/badge/Python-Active-blue?logo=python&logoColor=gold)](https://www.python.org/)
+[![JavaScript - Status](https://img.shields.io/badge/JavaScript-Stale-yellow?logo=javascript&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+[![TypeScript - Status](https://img.shields.io/badge/TypeScript-Stale-blue?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Rust - Status](https://img.shields.io/badge/Rust-Stale-orange?logo=rust&logoColor=white)](https://www.rust-lang.org/)
+[![C++ - Status](https://img.shields.io/badge/C%2B%2B-Stale-purple?logo=cplusplus&logoColor=white)](https://isocpp.org/)
 ![License - Name](https://img.shields.io/badge/License-MIT-red)
 
 <!-- Dynamic Markdown Badges -->
@@ -135,6 +136,11 @@
 			<li>
 				<p>
 					Rust
+				</p>
+			</li>
+			<li>
+				<p>
+					C++
 				</p>
 			</li>
 			<li>
