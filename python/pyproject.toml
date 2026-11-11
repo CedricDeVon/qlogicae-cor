@@ -1,6 +1,6 @@
 [project]
 name = "qlogicae-cor"
-version = "3.2.0"
+version = "3.2.1"
 description = "The core library for QLogicae projects"
 readme = { file = "README.md", content-type = "text/markdown" }
 requires-python = ">=3.12"

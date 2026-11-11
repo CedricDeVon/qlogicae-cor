@@ -2,7 +2,7 @@
     Contribution
 </h1>
 <p>
-    <a href="../README.md">Home</a>
+    <a href="./README.md">Home</a>
 </p>
 </br>
 

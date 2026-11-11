@@ -8,12 +8,15 @@
 
 
 <div style="text-align: center;">
-  <h1>Cor</h1>
+  <h1>QLogicae Cor</h1>
   <p style="font-style: italic;">The core library for QLogicae projects</p>
   <div style="margin: 32px 64px;">
 
 <!-- Static Markdown Badges -->
-![Project - Version](https://img.shields.io/badge/Version-python-v3.2.0-blue)
+[![Python - Versions](https://img.shields.io/badge/Python-Active-blue?logo=python&logoColor=gold)](https://www.python.org/)
+[![JavaScript - Versions](https://img.shields.io/badge/JavaScript-Stale-yellow?logo=javascript&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+[![TypeScript - Versions](https://img.shields.io/badge/TypeScript-Stale-blue?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Rust - Versions](https://img.shields.io/badge/Rust-Stale-orange?logo=rust&logoColor=white)](https://www.rust-lang.org/)
 ![License - Name](https://img.shields.io/badge/License-MIT-red)
 
 <!-- Dynamic Markdown Badges -->
@@ -56,7 +59,7 @@
             </a>
         </li>
     </ul>
-    <li>
+    <!-- <li>
 		<a href="#usage">
 			Usage
 		</a>
@@ -77,7 +80,7 @@
 				</a>
 			</li>
 		</ul>
-    </li>
+    </li> -->
     <li>
 		<a href="#legalities">
 			Legalities
@@ -102,21 +105,53 @@
   	🧾 Description
 </h3>
 <p style="font-style:italic">
-  	[insert quote]
+  	Why would a chef reject his own dishes?
 </p>
 <p>
-  	[...]
+  	<strong>QLogicae Cor</strong> is a software library, composed of reusable features for QLogicae applications.
 </p>
 <h3 id="about-core-features">
   	⚙️ Core Features
 </h3>
 <p>
-  	More can be added, eventually. What this project offers now is as follows:
+  	More will be added, eventually. What this project offers now are as follows:
 </p>
 <ul>
 	<li>
 		<p>
-			[...]
+			Various codebases across multiple programming languages:
+		</p>
+		<ul>
+			<li>
+				<p>
+					Python
+				</p>
+			</li>
+			<li>
+				<p>
+					JavaScript / TypeScript
+				</p>
+			</li>
+			<li>
+				<p>
+					Rust
+				</p>
+			</li>
+			<li>
+				<p>
+					And more to come!
+				</p>
+			</li>
+		</ul>
+	</li>
+	<li>
+		<p>
+			Reusable and trusted features known to be, or anticipated to be, utilized and integrated within current and future QLogicae applications of their respective platforms and programming languages.
+		</p>
+	</li>
+	<li>
+		<p>
+			Minimalistic external dependency usage. Prioritizes internal built-in dependencies over external 3rd party packages, libraries, frameworks, etc.
 		</p>
 	</li>
 </ul>
@@ -130,7 +165,7 @@
 </br>
 
 
-
+<!-- 
 <h2 id="usage">
   	🧑‍💻 Usage
 </h2>
@@ -172,7 +207,7 @@
 <p>
   	[...]
 </p>
-</br>
+</br> -->
 
 
 
