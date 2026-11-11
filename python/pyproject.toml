@@ -28,7 +28,6 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
-    "Typing :: Typed",
     "Topic :: Software Development",
     "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Python Modules",
@@ -101,8 +100,7 @@ source = [
     "qlogicae_cor.v3.library.enum_conversion_value_enum_manager",
     "qlogicae_cor.v3.library.python_module_manager",
     "qlogicae_cor.v3.library.plugin_manager",
-    "qlogicae_cor.v3.library.asynchronous_manager",
-    
+    "qlogicae_cor.v3.library.asynchronous_manager",    
     "qlogicae_cor.v3.library.group_selection_manager",
     "qlogicae_cor.v3.library.placeholder_value_manager",
 ]
@@ -224,7 +222,7 @@ test-run-unit = """
 """
 
 test-run-smoke = """
-    ./.venv/bin/python -m test.qlogicae_cor.v3.smoke.script
+    pytest -vv --cov --cov-branch --cov-report=term-missing --cov-report=html:\"output/test/smoke/html\" --cov-report=xml:\"output/test/smoke/coverage.xml\" --cov-report=json:\"output/test/smoke/coverage.json\" --junitxml=\"output/test/smoke/junit.xml\" test/qlogicae_cor/v3/smoke/test_imports.py
 """
 
 test-run-e2e = """
