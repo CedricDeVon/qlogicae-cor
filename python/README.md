@@ -220,7 +220,7 @@
 </h3>
 
 <p>
-  	The project is currently under the <a href="./LICENSE">MIT License</a>.
+  	The project is currently under the MIT License.
 </p>
 
 </br>
