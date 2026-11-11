@@ -79,8 +79,8 @@
         </tr>
         <tr>
             <td style="text-align: left">🔥 Latest</td>
-            <td style="text-align: left">python-3.2.1</td>
-            <td style="text-align: left">2026-11-10</td>
+            <td style="text-align: left">python-v3.2.3</td>
+            <td style="text-align: left">2026-11-11</td>
             <td style="text-align: left">Prototypical cli api</td>
             <td style="text-align: left"></td>
         </tr>

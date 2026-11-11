@@ -8,15 +8,15 @@
 
 
 <div style="text-align: center;">
-  <h1>Cor</h1>
+  <h1>QLogicae Cor</h1>
   <p style="font-style: italic;">The core library for QLogicae projects</p>
   <div style="margin: 32px 64px;">
 
 <!-- Static Markdown Badges -->
-[![Python - Versions](https://img.shields.io/badge/Python-3.12|%933.13|%933.14-blue?logo=python&logoColor=gold)](https://www.python.org/)
-[![JavaScript - Versions](https://img.shields.io/badge/JavaScript-Recent-yellow?logo=javascript&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
-[![TypeScript - Versions](https://img.shields.io/badge/TypeScript-Recent-blue?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Rust - Versions](https://img.shields.io/badge/Rust-Recent-orange?logo=rust&logoColor=white)](https://www.rust-lang.org/)
+[![Python - Versions](https://img.shields.io/badge/Python-Active-blue?logo=python&logoColor=gold)](https://www.python.org/)
+[![JavaScript - Versions](https://img.shields.io/badge/JavaScript-Stale-yellow?logo=javascript&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+[![TypeScript - Versions](https://img.shields.io/badge/TypeScript-Stale-blue?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Rust - Versions](https://img.shields.io/badge/Rust-Stale-orange?logo=rust&logoColor=white)](https://www.rust-lang.org/)
 ![License - Name](https://img.shields.io/badge/License-MIT-red)
 
 <!-- Dynamic Markdown Badges -->
@@ -108,7 +108,7 @@
   	Why would a chef reject his own dishes?
 </p>
 <p>
-  	The QLogicae Cor is a software library, containing reusable and integration-safe features for QLogicae applications.
+  	<strong>QLogicae Cor</strong> is a software library, composed of reusable features for QLogicae applications.
 </p>
 <h3 id="about-core-features">
   	⚙️ Core Features
@@ -119,12 +119,7 @@
 <ul>
 	<li>
 		<p>
-			Reusable and trusted features known to be, or anticipated to be, utilized and integrated within current and future QLogicae applications of their respective platforms and programming languages.
-		</p>
-	</li>
-	<li>
-		<p>
-			Available across multiple programming languages:
+			Various codebases across multiple programming languages:
 		</p>
 		<ul>
 			<li>
@@ -134,12 +129,7 @@
 			</li>
 			<li>
 				<p>
-					JavaScript
-				</p>
-			</li>
-			<li>
-				<p>
-					TypeScript
+					JavaScript / TypeScript
 				</p>
 			</li>
 			<li>
@@ -156,7 +146,12 @@
 	</li>
 	<li>
 		<p>
-			Minimalistic external dependency usage strategy. Prioritizes the utilization of internal built-in dependencies over external 3rd party packages, libraries, frameworks, and others.
+			Reusable and trusted features known to be, or anticipated to be, utilized and integrated within current and future QLogicae applications of their respective platforms and programming languages.
+		</p>
+	</li>
+	<li>
+		<p>
+			Minimalistic external dependency usage. Prioritizes internal built-in dependencies over external 3rd party packages, libraries, frameworks, etc.
 		</p>
 	</li>
 </ul>

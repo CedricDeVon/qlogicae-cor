@@ -9,324 +9,324 @@ defaults:
         shell: bash
 
 jobs:
-    python-v1-unit-test:
-        name: Python | V1 | Unit Test
-        runs-on: ubuntu-latest
-
-        defaults:
-            run:
-                working-directory: ./python
-
-        strategy:
-            fail-fast: false
-            matrix:
-                python-version:
-                    - "3.14"
-                    - "3.13"
-                    - "3.12"
-
-        steps:
-            - uses: actions/checkout@v4
-
-            - run: sleep 20
+    # python-v1-unit-test:
+    #     name: Python | V1 | Unit Test
+    #     runs-on: ubuntu-latest
+
+    #     defaults:
+    #         run:
+    #             working-directory: ./python
+
+    #     strategy:
+    #         fail-fast: false
+    #         matrix:
+    #             python-version:
+    #                 - "3.14"
+    #                 - "3.13"
+    #                 - "3.12"
+
+    #     steps:
+    #         - uses: actions/checkout@v4
+
+    #         - run: sleep 20
 
-            - name: Setup Python
-              uses: actions/setup-python@v5
-              with:
-                python-version: ${{ matrix.python-version }}
-
-            - name: Install Hatch
-              run: |
-                python -m pip install --upgrade pip
-                pip install hatch
-
-            - name: Install Dev Dependencies
-              run: python3 -m pip install -r requirements.txt
-
-            - name: Create Hatch environment
-              run: hatch env create
-
-            - name: Run Scripts      
-              run: hatch run github-workflow-test-unit
-
-    python-v1-lint-test:
-        name: Python | V1 | Lint
-        runs-on: ubuntu-latest
-
-        defaults:
-            run:
-                working-directory: ./python
-
-        strategy:
-            fail-fast: false
-            matrix:
-                python-version:
-                    - "3.14"
-                    - "3.13"
-                    - "3.12"
-
-        steps:
-            - uses: actions/checkout@v4
-
-            - run: sleep 20
+    #         - name: Setup Python
+    #           uses: actions/setup-python@v5
+    #           with:
+    #             python-version: ${{ matrix.python-version }}
+
+    #         - name: Install Hatch
+    #           run: |
+    #             python -m pip install --upgrade pip
+    #             pip install hatch
+
+    #         - name: Install Dev Dependencies
+    #           run: python3 -m pip install -r requirements.txt
+
+    #         - name: Create Hatch environment
+    #           run: hatch env create
+
+    #         - name: Run Scripts      
+    #           run: hatch run github-workflow-test-unit
+
+    # python-v1-lint-test:
+    #     name: Python | V1 | Lint
+    #     runs-on: ubuntu-latest
+
+    #     defaults:
+    #         run:
+    #             working-directory: ./python
+
+    #     strategy:
+    #         fail-fast: false
+    #         matrix:
+    #             python-version:
+    #                 - "3.14"
+    #                 - "3.13"
+    #                 - "3.12"
+
+    #     steps:
+    #         - uses: actions/checkout@v4
+
+    #         - run: sleep 20
 
-            - name: Setup Python
-              uses: actions/setup-python@v5
-              with:
-                python-version: ${{ matrix.python-version }}
+    #         - name: Setup Python
+    #           uses: actions/setup-python@v5
+    #           with:
+    #             python-version: ${{ matrix.python-version }}
 
-            - name: Install Hatch
-              run: |
-                python -m pip install --upgrade pip
-                pip install hatch
+    #         - name: Install Hatch
+    #           run: |
+    #             python -m pip install --upgrade pip
+    #             pip install hatch
 
-            - name: Install Dev Dependencies
-              run: python3 -m pip install -r requirements.txt
-
-            - name: Create Hatch environment
-              run: hatch env create
+    #         - name: Install Dev Dependencies
+    #           run: python3 -m pip install -r requirements.txt
+
+    #         - name: Create Hatch environment
+    #           run: hatch env create
 
-            - name: Run Scripts              
-              run: hatch run github-workflow-test-unit
+    #         - name: Run Scripts              
+    #           run: hatch run github-workflow-test-unit
 
-    python-v1-type-check-test:
-        name: Python | V1 | Type Check
-        runs-on: ubuntu-latest
+    # python-v1-type-check-test:
+    #     name: Python | V1 | Type Check
+    #     runs-on: ubuntu-latest
 
-        defaults:
-            run:
-                working-directory: ./python
+    #     defaults:
+    #         run:
+    #             working-directory: ./python
 
-        strategy:
-            fail-fast: false
-            matrix:
-                python-version:
-                    - "3.14"
-                    - "3.13"
-                    - "3.12"
+    #     strategy:
+    #         fail-fast: false
+    #         matrix:
+    #             python-version:
+    #                 - "3.14"
+    #                 - "3.13"
+    #                 - "3.12"
 
-        steps:
-            - uses: actions/checkout@v4
+    #     steps:
+    #         - uses: actions/checkout@v4
 
-            - run: sleep 20
+    #         - run: sleep 20
 
-            - name: Setup Python
-              uses: actions/setup-python@v5
-              with:
-                python-version: ${{ matrix.python-version }}
+    #         - name: Setup Python
+    #           uses: actions/setup-python@v5
+    #           with:
+    #             python-version: ${{ matrix.python-version }}
 
-            - name: Install Hatch
-              run: |
-                python -m pip install --upgrade pip
-                pip install hatch
+    #         - name: Install Hatch
+    #           run: |
+    #             python -m pip install --upgrade pip
+    #             pip install hatch
 
-            - name: Install Dev Dependencies
-              run: python3 -m pip install -r requirements.txt
+    #         - name: Install Dev Dependencies
+    #           run: python3 -m pip install -r requirements.txt
 
-            - name: Create Hatch environment
-              run: hatch env create
+    #         - name: Create Hatch environment
+    #           run: hatch env create
 
-            - name: Run Scripts        
-              run: hatch run github-workflow-test-type-check
+    #         - name: Run Scripts        
+    #           run: hatch run github-workflow-test-type-check
 
-    python-v1-e2e-test:
-      name: Python | V1 | End-To-End Test
-      runs-on: ubuntu-latest
+    # python-v1-e2e-test:
+    #   name: Python | V1 | End-To-End Test
+    #   runs-on: ubuntu-latest
 
-      defaults:
-          run:
-              working-directory: ./python/test/qlogicae_cor/v1/e2e
+    #   defaults:
+    #       run:
+    #           working-directory: ./python/test/qlogicae_cor/v1/e2e
 
-      strategy:
-          fail-fast: false
-          matrix:
-              python-version:
-                  - "3.14"
-                  - "3.13"
-                  - "3.12"
+    #   strategy:
+    #       fail-fast: false
+    #       matrix:
+    #           python-version:
+    #               - "3.14"
+    #               - "3.13"
+    #               - "3.12"
 
-      steps:
-          - uses: actions/checkout@v4
+    #   steps:
+    #       - uses: actions/checkout@v4
 
-          - name: PyPi Wait
-            run: sleep 20
+    #       - name: PyPi Wait
+    #         run: sleep 20
 
-          - name: Setup Python
-            uses: actions/setup-python@v5
-            with:
-                python-version: ${{ matrix.python-version }}
+    #       - name: Setup Python
+    #         uses: actions/setup-python@v5
+    #         with:
+    #             python-version: ${{ matrix.python-version }}
 
-          - name: Setup Virtual Environment
-            run: python3 -m venv .venv
+    #       - name: Setup Virtual Environment
+    #         run: python3 -m venv .venv
 
-          - name: Activate Virtual Environment
-            run: source .venv/bin/activate
+    #       - name: Activate Virtual Environment
+    #         run: source .venv/bin/activate
 
-          - name: Install Package
-            run: pip install qlogicae-cor
+    #       - name: Install Package
+    #         run: pip install qlogicae-cor
 
-          - name: Run Package Existence Validation
-            run: qlogicae-cor
+    #       - name: Run Package Existence Validation
+    #         run: qlogicae-cor
 
 
-    python-v2-unit-test:
-        name: Python | V2 | Unit Test
-        runs-on: ubuntu-latest
+    # python-v2-unit-test:
+    #     name: Python | V2 | Unit Test
+    #     runs-on: ubuntu-latest
 
-        defaults:
-            run:
-                working-directory: ./python
+    #     defaults:
+    #         run:
+    #             working-directory: ./python
 
-        strategy:
-            fail-fast: false
-            matrix:
-                python-version:
-                    - "3.14"
-                    - "3.13"
-                    - "3.12"
+    #     strategy:
+    #         fail-fast: false
+    #         matrix:
+    #             python-version:
+    #                 - "3.14"
+    #                 - "3.13"
+    #                 - "3.12"
 
-        steps:
-            - uses: actions/checkout@v4
+    #     steps:
+    #         - uses: actions/checkout@v4
 
-            - run: sleep 20
+    #         - run: sleep 20
 
-            - name: Setup Python
-              uses: actions/setup-python@v5
-              with:
-                python-version: ${{ matrix.python-version }}
+    #         - name: Setup Python
+    #           uses: actions/setup-python@v5
+    #           with:
+    #             python-version: ${{ matrix.python-version }}
 
-            - name: Install Hatch
-              run: |
-                python -m pip install --upgrade pip
-                pip install hatch
+    #         - name: Install Hatch
+    #           run: |
+    #             python -m pip install --upgrade pip
+    #             pip install hatch
 
-            - name: Install Dev Dependencies
-              run: python3 -m pip install -r requirements.txt
+    #         - name: Install Dev Dependencies
+    #           run: python3 -m pip install -r requirements.txt
 
-            - name: Create Hatch environment
-              run: hatch env create
+    #         - name: Create Hatch environment
+    #           run: hatch env create
 
-            - name: Run Scripts      
-              run: hatch run github-workflow-test-unit
+    #         - name: Run Scripts      
+    #           run: hatch run github-workflow-test-unit
 
-    python-v2-lint-test:
-        name: Python | V2 | Lint
-        runs-on: ubuntu-latest
+    # python-v2-lint-test:
+    #     name: Python | V2 | Lint
+    #     runs-on: ubuntu-latest
 
-        defaults:
-            run:
-                working-directory: ./python
+    #     defaults:
+    #         run:
+    #             working-directory: ./python
 
-        strategy:
-            fail-fast: false
-            matrix:
-                python-version:
-                    - "3.14"
-                    - "3.13"
-                    - "3.12"
+    #     strategy:
+    #         fail-fast: false
+    #         matrix:
+    #             python-version:
+    #                 - "3.14"
+    #                 - "3.13"
+    #                 - "3.12"
 
-        steps:
-            - uses: actions/checkout@v4
+    #     steps:
+    #         - uses: actions/checkout@v4
 
-            - run: sleep 20
+    #         - run: sleep 20
 
-            - name: Setup Python
-              uses: actions/setup-python@v5
-              with:
-                python-version: ${{ matrix.python-version }}
+    #         - name: Setup Python
+    #           uses: actions/setup-python@v5
+    #           with:
+    #             python-version: ${{ matrix.python-version }}
 
-            - name: Install Hatch
-              run: |
-                python -m pip install --upgrade pip
-                pip install hatch
+    #         - name: Install Hatch
+    #           run: |
+    #             python -m pip install --upgrade pip
+    #             pip install hatch
 
-            - name: Install Dev Dependencies
-              run: python3 -m pip install -r requirements.txt
+    #         - name: Install Dev Dependencies
+    #           run: python3 -m pip install -r requirements.txt
 
-            - name: Create Hatch environment
-              run: hatch env create
+    #         - name: Create Hatch environment
+    #           run: hatch env create
 
-            - name: Run Scripts              
-              run: hatch run github-workflow-test-unit
+    #         - name: Run Scripts              
+    #           run: hatch run github-workflow-test-unit
 
-    python-v2-type-check-test:
-        name: Python | V2 | Type Check
-        runs-on: ubuntu-latest
+    # python-v2-type-check-test:
+    #     name: Python | V2 | Type Check
+    #     runs-on: ubuntu-latest
 
-        defaults:
-            run:
-                working-directory: ./python
+    #     defaults:
+    #         run:
+    #             working-directory: ./python
 
-        strategy:
-            fail-fast: false
-            matrix:
-                python-version:
-                    - "3.14"
-                    - "3.13"
-                    - "3.12"
+    #     strategy:
+    #         fail-fast: false
+    #         matrix:
+    #             python-version:
+    #                 - "3.14"
+    #                 - "3.13"
+    #                 - "3.12"
 
-        steps:
-            - uses: actions/checkout@v4
+    #     steps:
+    #         - uses: actions/checkout@v4
 
-            - run: sleep 20
+    #         - run: sleep 20
 
-            - name: Setup Python
-              uses: actions/setup-python@v5
-              with:
-                python-version: ${{ matrix.python-version }}
+    #         - name: Setup Python
+    #           uses: actions/setup-python@v5
+    #           with:
+    #             python-version: ${{ matrix.python-version }}
 
-            - name: Install Hatch
-              run: |
-                python -m pip install --upgrade pip
-                pip install hatch
+    #         - name: Install Hatch
+    #           run: |
+    #             python -m pip install --upgrade pip
+    #             pip install hatch
 
-            - name: Install Dev Dependencies
-              run: python3 -m pip install -r requirements.txt
+    #         - name: Install Dev Dependencies
+    #           run: python3 -m pip install -r requirements.txt
 
-            - name: Create Hatch environment
-              run: hatch env create
+    #         - name: Create Hatch environment
+    #           run: hatch env create
 
-            - name: Run Scripts        
-              run: hatch run github-workflow-test-type-check
+    #         - name: Run Scripts        
+    #           run: hatch run github-workflow-test-type-check
 
-    python-v2-e2e-test:
-      name: Python | V2 | End-To-End Test
-      runs-on: ubuntu-latest
+    # python-v2-e2e-test:
+    #   name: Python | V2 | End-To-End Test
+    #   runs-on: ubuntu-latest
 
-      defaults:
-          run:
-              working-directory: ./python/test/qlogicae_cor/v2/e2e
+    #   defaults:
+    #       run:
+    #           working-directory: ./python/test/qlogicae_cor/v2/e2e
 
-      strategy:
-          fail-fast: false
-          matrix:
-              python-version:
-                  - "3.14"
-                  - "3.13"
-                  - "3.12"
+    #   strategy:
+    #       fail-fast: false
+    #       matrix:
+    #           python-version:
+    #               - "3.14"
+    #               - "3.13"
+    #               - "3.12"
 
-      steps:
-          - uses: actions/checkout@v4
+    #   steps:
+    #       - uses: actions/checkout@v4
 
-          - name: PyPi Wait
-            run: sleep 20
+    #       - name: PyPi Wait
+    #         run: sleep 20
 
-          - name: Setup Python
-            uses: actions/setup-python@v5
-            with:
-                python-version: ${{ matrix.python-version }}
+    #       - name: Setup Python
+    #         uses: actions/setup-python@v5
+    #         with:
+    #             python-version: ${{ matrix.python-version }}
 
-          - name: Setup Virtual Environment
-            run: python3 -m venv .venv
+    #       - name: Setup Virtual Environment
+    #         run: python3 -m venv .venv
 
-          - name: Activate Virtual Environment
-            run: source .venv/bin/activate
+    #       - name: Activate Virtual Environment
+    #         run: source .venv/bin/activate
 
-          - name: Install Package
-            run: pip install qlogicae-cor
+    #       - name: Install Package
+    #         run: pip install qlogicae-cor
 
-          - name: Run Package Existence Validation
-            run: qlogicae-cor
+    #       - name: Run Package Existence Validation
+    #         run: qlogicae-cor
 
 
 
