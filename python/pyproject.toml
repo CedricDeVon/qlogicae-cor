@@ -250,7 +250,7 @@ test-check-pip-deployment-build = """
 """
 
 benchmark-create-memray-usage-import-only = """
-    memray run -o output/benchmark/usage.import_only.bin -m test.qlogicae_cor.v3.benchmark.memory.import.usage.import_only --force
+    memray run -o output/benchmark/usage.import_only.bin -m benchmark.qlogicae_cor.v3.memory.import.usage.import_only --force
 """
 
 benchmark-view-memray-usage-import-only = """
@@ -258,7 +258,7 @@ benchmark-view-memray-usage-import-only = """
 """
 
 benchmark-create-memray-usage-import-and-allocate = """
-    memray run -o output/benchmark/usage.import_and_allocate.bin -m test.qlogicae_cor.v3.benchmark.memory.import.usage.import_and_allocate --force
+    memray run -o output/benchmark/usage.import_and_allocate.bin -m benchmark.qlogicae_cor.v3.memory.import.usage.import_and_allocate --force
 """
 
 benchmark-view-memray-usage-import-and-allocate = """
@@ -266,15 +266,15 @@ benchmark-view-memray-usage-import-and-allocate = """
 """
 
 benchmark-short-library-import-memory-usage = """
-    ./.venv/bin/python -m test.qlogicae_cor.v3.benchmark.tool qlogicae_cor.v3 --json-output output/benchmark/import-library-memory-usage.json --repetitions 10
+    ./.venv/bin/python -m benchmark.qlogicae_cor.v3.tool qlogicae_cor.v3 --json-output output/benchmark/import-library-memory-usage.json --repetitions 10
 """
 
 benchmark-long-experiment-import-memory-usage = """
-    ./.venv/bin/python -m test.qlogicae_cor.v3.benchmark.tool test.qlogicae_cor.v3.benchmark.memory.import.experiment.static_import test.qlogicae_cor.v3.benchmark.memory.import.experiment.old_dynamic_import test.qlogicae_cor.v3.benchmark.memory.import.experiment.typeless_with_static_class_import test.qlogicae_cor.v3.benchmark.memory.import.experiment.typeless_with_dynamic_class_import test.qlogicae_cor.v3.benchmark.memory.import.experiment.empty_package --json-output output/benchmark/import-experiment-memory-usage.json/ --repetitions 20
+    ./.venv/bin/python -m benchmark.qlogicae_cor.v3.tool benchmark.qlogicae_cor.v3.memory.import.experiment.static_import benchmark.qlogicae_cor.v3.memory.import.experiment.old_dynamic_import benchmark.qlogicae_cor.v3.memory.import.experiment.typeless_with_static_class_import benchmark.qlogicae_cor.v3.memory.import.experiment.typeless_with_dynamic_class_import benchmark.qlogicae_cor.v3.memory.import.experiment.empty_package --json-output output/benchmark/import-experiment-memory-usage.json/ --repetitions 20
 """
 
 benchmark-long-library-import-memory-usage = """
-    ./.venv/bin/python -m test.qlogicae_cor.v3.benchmark.tool qlogicae_cor.v1 qlogicae_cor.v2 qlogicae_cor.v3 --json-output output/benchmark/import-library-memory-usage.json --repetitions 20
+    ./.venv/bin/python -m benchmark.qlogicae_cor.v3.tool qlogicae_cor.v1 qlogicae_cor.v2 qlogicae_cor.v3 --json-output output/benchmark/import-library-memory-usage.json --repetitions 20
 """
 
 deploy-build-release = """
