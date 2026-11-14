@@ -598,7 +598,6 @@ class TestPluginManagerMerge:
         "target",
         [
             None,
-            {},
             (),
             [],
             "",
@@ -618,7 +617,6 @@ class TestPluginManagerMerge:
         "raw_data",
         [
             (None,),
-            ({},),
             ((),),
             ([],),
             ("",),
@@ -931,11 +929,10 @@ class TestPluginManagerSetup:
     ):
         module = plugin_module_factory({"first": 1})
 
-        with pytest.raises(ValueError):
-            manager.setup(
-                imported_modules=(module,),
-                raw_export_data=({},),
-            )
+        manager.setup(
+            imported_modules=(module,),
+            raw_export_data=({},),
+        )
 
     def test_should_accept_initial_export_data(
         self,

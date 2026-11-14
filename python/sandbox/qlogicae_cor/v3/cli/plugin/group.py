@@ -1,0 +1,16 @@
+__all__ = (
+    "export"
+)
+
+def export():
+    data = {
+        "object_merge": {
+            "level": 1
+        },
+        "name": {
+            "group"
+        }        
+    }
+
+    return data
+

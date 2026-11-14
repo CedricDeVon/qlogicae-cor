@@ -66,6 +66,12 @@ def export():
                 "on_post_run": on_post_run,
             },
         },
+        "object_merge": {
+            "layer": 0
+        },
+        "name": {
+            "root"
+        }        
     }
 
     return data

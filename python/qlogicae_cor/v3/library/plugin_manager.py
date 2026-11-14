@@ -99,6 +99,7 @@ def _allocate():
                     imported_modules
                 )
             )
+
             module_exports = (
                 self.setup_merged_raw_module_exports(
                     kwargs,
@@ -168,8 +169,12 @@ def _allocate():
                     )
             )
 
-            return (
+            outputs = (
                 imported_modules + output_imported_modules
+            )
+
+            return (
+                outputs
             )
 
         def read_raw_module_exports(
@@ -179,10 +184,14 @@ def _allocate():
             if not isinstance(targets, (tuple, list)) or not targets:
                 raise ValueError("'targets' must either be a non-empty tuple or list")
 
-            raw_module_exports = (
+            raw_module_exports = [
                 self.read_plugin_module_export(
                     imported_module
                 ) for imported_module in targets
+            ]
+
+            raw_module_exports.sort(
+                key=lambda item: (item.get('object_merge', {}) or {}).get('level', 0)
             )
 
             return tuple(
@@ -217,8 +226,8 @@ def _allocate():
 
             module_exports = initial_export_data
             for target in targets:
-                if not isinstance(target, (dict)) or not target:
-                    raise ValueError("'target' must be a non-empty dictionary")
+                if not isinstance(target, (dict)):
+                    raise ValueError("'target' must be a dictionary")
 
                 module_exports = (
                     object_merge_manager.deep_merge(

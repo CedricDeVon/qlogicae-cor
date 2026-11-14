@@ -79,9 +79,16 @@
         </tr> -->
         <tr>
             <td style="text-align: left">🔥 Latest</td>
+            <td style="text-align: left">python-3.3.1</td>
+            <td style="text-align: left">2026-11-14</td>
+            <td style="text-align: left">'PluginManager' related bugfixes</td>
+            <td style="text-align: left"></td>
+        </tr>
+        <tr>
+            <td style="text-align: left"></td>
             <td style="text-align: left">python-3.3.0</td>
             <td style="text-align: left">2026-11-11</td>
-            <td style="text-align: left">CLI feature migration to 'qlogicae-cliq'</td>
+            <td style="text-align: left">CLI related feature migrations to 'qlogicae-cliq'</td>
             <td style="text-align: left"></td>
         </tr>
         <tr>
