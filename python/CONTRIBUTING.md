@@ -2,7 +2,7 @@
     Contribution
 </h1>
 <p>
-    <a href="./README.md">Home</a>
+    <a href="../README.md">Home</a>
 </p>
 </br>
 
@@ -36,6 +36,18 @@
             Setup
         </a>
         </li>    
+    </ul>
+    <li>
+        <a href="#qlogicae">
+            QLogicae
+        </a>
+    </li>
+    <ul>
+        <li>
+            <a href="#qlogicae-naming-conventions">
+                Naming Conventions
+            </a>
+        </li>
     </ul>
     <li>
         <a href="#git">
@@ -128,6 +140,78 @@ cd [repository-directory]</code></pre>
     </li>
 </ol>
 </br>
+
+
+
+
+<h2 id="qlogicae">
+    🔖 QLogicae
+</h2>
+<h3 id="qlogicae-naming-conventions">
+    📋 Naming Conventions
+</h3>
+<p>
+    QLogicae-centered projects must follow a set of naming conventions. 
+</p>
+<ol>
+    <li>
+        <p>
+            Source Code Format(s):
+        </p>
+        <ul>
+            <li>
+                <p>
+                    qlogicae-[project-name]
+                </p>
+            </li>
+            <li>
+                <p>
+                    qlogicae-[main-project-name]-[sub-project-name]
+                </p>
+            </li>
+            <li>
+                <p>
+                    qlogicae_[project-name]
+                </p>
+            </li>
+            <li>
+                <p>
+                    qlogicae_[main-project-name]_[sub-project-name]
+                </p>
+            </li>
+        </ul>
+    </li>
+    <li>
+        <p>
+            Every compound project name must be composed of only two names: 'main-name ' and 'sub-name'—no more, no less.
+        </p>
+    </li>
+    <li>
+        <p>
+            Project names must not conflict with each other.
+        </p>
+    </li>
+    <li>
+        <p>
+            Every project name must contain at least 2 or 3 syllables. Each must also be as easy to pronounce as possible.
+        </p>
+    </li>
+    <li>
+        <p>
+            Every project name must symbolically represent its current purpose. Documented presentation effectiveness should be enough to answer concerns regarding naming choices.
+        </p>
+    </li>    
+    <li>
+        <p>
+            Every project name must anticipate flexibility. Do not select obvious and overly specific names.
+        </p>
+    </li>    
+</ol>
+<p>
+    <strong>NOTE: </strong> Existing QLogicae projects, since Nov. 15, 2026, are excluded from the rules above.
+</p>
+</br>
+
 
 
 

@@ -46,7 +46,6 @@ dev = [
     "hatch",
     "twine",
     "memray",
-    "scalene",
     "pympler",
     "vulture",
     "bandit",
@@ -56,7 +55,9 @@ dev = [
 ]
 
 [project.scripts]
-qlogicae-cor = "qlogicae_cor.v3.app:main"
+qlogicae-cor = "qlogicae_cor.v3.__main__:main"
+qlogicae-cor-v2 = "qlogicae_cor.v2.__main__:main"
+qlogicae-cor-v3 = "qlogicae_cor.v3.__main__:main"
 
 [project.urls]
 Homepage = "https://github.com/CedricDeVon/qlogicae-cor"
@@ -209,6 +210,34 @@ packages = ["qlogicae_cor"]
 
 
 [tool.hatch.envs.default.scripts]
+build-filesystem-clean = """
+    python3 -c "import shutil,sys; [shutil.rmtree(p, ignore_errors=True) for p in sys.argv[1:]]" dist output
+"""
+
+build-filesystem-setup = """
+    python3 -c "import pathlib,sys; [pathlib.Path(p).mkdir(parents=True, exist_ok=True) for p in sys.argv[1:]]" archive output/build/release output/build/release/source output/build/release/minified output/test/unit output/test/smoke output/test/e2e output/benchmark
+"""
+
+build-pre-minify = """
+    python3 -c "import shutil,sys; shutil.copytree(sys.argv[1], sys.argv[2], dirs_exist_ok=True)" qlogicae_cor output/build/release/minified/qlogicae_cor
+"""
+
+build-minify = """
+    pyminify --in-place --prefer-single-line --remove-debug --remove-asserts --remove-literal-statements --remove-class-attribute-annotations output/build/release/minified
+"""
+
+build-source = """
+    python3 -c "import shutil,sys; shutil.copytree(sys.argv[1], sys.argv[2], dirs_exist_ok=True)" qlogicae_cor output/build/release/source/qlogicae_cor
+"""
+
+build-pip-package = """
+    hatch build
+"""
+
+build-post-1-pip-package = """
+    python3 -c "import shutil,sys; shutil.copytree(sys.argv[1], sys.argv[2], dirs_exist_ok=True)" dist output/build/release/dist
+"""
+
 test-check-and-apply-format = """
     ruff check qlogicae_cor/v3 --fix
 """
@@ -222,7 +251,7 @@ test-run-unit = """
 """
 
 test-run-smoke = """
-    pytest -vv --cov --cov-branch --cov-report=term-missing --cov-report=html:\"output/test/smoke/html\" --cov-report=xml:\"output/test/smoke/coverage.xml\" --cov-report=json:\"output/test/smoke/coverage.json\" --junitxml=\"output/test/smoke/junit.xml\" test/qlogicae_cor/v3/smoke/test_imports.py
+    pytest -vv test/qlogicae_cor/v3/smoke/test_imports.py
 """
 
 test-run-e2e = """
@@ -250,19 +279,19 @@ test-check-pip-deployment-build = """
 """
 
 benchmark-create-memray-usage-import-only = """
-    memray run -o output/benchmark/usage.import_only.bin -m benchmark.qlogicae_cor.v3.memory.import.usage.import_only --force
+    memray run -o output/benchmark/import_only.bin -m benchmark.qlogicae_cor.v3.memory.import.usage.import_only --force
 """
 
 benchmark-view-memray-usage-import-only = """
-    memray tree output/benchmark/usage.import_only.bin
+    memray tree output/benchmark/import_only.bin
 """
 
 benchmark-create-memray-usage-import-and-allocate = """
-    memray run -o output/benchmark/usage.import_and_allocate.bin -m benchmark.qlogicae_cor.v3.memory.import.usage.import_and_allocate --force
+    memray run -o output/benchmark/import_and_allocate.bin -m benchmark.qlogicae_cor.v3.memory.import.usage.import_and_allocate --force
 """
 
 benchmark-view-memray-usage-import-and-allocate = """
-    memray tree output/benchmark/usage.import_and_allocate.bin
+    memray tree output/benchmark/import_and_allocate.bin
 """
 
 benchmark-short-library-import-memory-usage = """

@@ -1,0 +1,16 @@
+
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - '**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Confirmation
+        run: echo "Confirmed!"
